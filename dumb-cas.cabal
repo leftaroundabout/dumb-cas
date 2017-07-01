@@ -17,7 +17,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     CAS.Dumb.Tree
-  -- other-modules:       
+  other-modules:       CAS.Dumb.Util.These
   other-extensions:    DeriveFunctor
   build-depends:       base >=4.8 && <4.9, hashable >=1.2 && <1.3
                      , containers
