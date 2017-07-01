@@ -62,6 +62,8 @@ symbolFunction :: Monoid s¹ => s¹ -> Encapsulation s¹
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
 symbolFunction f (Encapsulation l r) a@(Symbol _)
     = Function (Encapsulation f mempty) a
+symbolFunction f (Encapsulation l r) a@(Gap _)
+    = Function (Encapsulation f mempty) a
 symbolFunction f (Encapsulation l r) a
     = Function (Encapsulation (f<>l) r) a
 
@@ -76,10 +78,12 @@ instance Num (CAS' γ InfixSymbol SEncapsulation Symbol) where
   signum = symbolFunction "signum " parenthesise
   negate = symbolFunction "negate " parenthesise
 
-showsPrecASCIISymbol :: Int -> CAS InfixSymbol SEncapsulation Symbol -> ShowS
+showsPrecASCIISymbol :: Show γ => Int -> CAS' γ InfixSymbol SEncapsulation Symbol -> ShowS
 showsPrecASCIISymbol _ (Symbol (StringSymbol s)) = (s++)
 showsPrecASCIISymbol _ (Symbol (NatSymbol n)) = shows n
-showsPrecASCIISymbol _ (Function (Encapsulation l r) s)
-    = (l++) . showsPrecASCIISymbol 0 s . (r++)
+showsPrecASCIISymbol p (Function (Encapsulation l r) s)
+    = showParen (p>9) $ (l++) . showsPrecASCIISymbol 0 s . (r++)
 showsPrecASCIISymbol p (Operator (Infix (Hs.Fixity fxty _) fx) a b)
-      = showParen (p>=fxty) $ showsPrecASCIISymbol 0 a . (fx++) . showsPrecASCIISymbol 0 b
+    = showParen (p>=fxty) $ showsPrecASCIISymbol 0 a . (fx++) . showsPrecASCIISymbol 0 b
+showsPrecASCIISymbol p (Gap γ)
+    = showParen (p>9) $ ("Gap "++) . showsPrec 10 γ
