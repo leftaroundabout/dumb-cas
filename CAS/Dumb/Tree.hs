@@ -34,11 +34,27 @@ data Equality s² s¹ s⁰ = Equality {
  , transformationOptions :: [Equality s² s¹ s⁰]
  }
 
-data GapOr s = Gap Int
+type GapId = Int
+data GapOr s = Gap GapId
              | NoGap s deriving (Eq, Functor, Generic)
 
 type Expattern s² s¹ s⁰ = Equality s² s¹ (GapOr s⁰)
 
-matchPattern :: CAS s² s¹ (GapOr s⁰) -> CAS s² s¹ s⁰ -> Maybe (Map Int (CAS s² s¹ s⁰))
+matchPattern :: CAS s² s¹ (GapOr s⁰) -> CAS s² s¹ s⁰ -> Maybe (Map GapId (CAS s² s¹ s⁰))
 matchPattern (Symbol (Gap i)) e = Just $ Map.singleton i e
 
+infixl 1 &==
+(&==) :: (Eq s⁰, Eq s¹, Eq s²) => CAS s² s¹ s⁰ -> Expattern s² s¹ s⁰ -> CAS s² s¹ s⁰
+e &== Equality orig (Equality alt _:_)
+  | Just varMatches <- matchPattern orig e
+      = case fillGaps varMatches alt of
+          Just refilled -> refilled
+e &== _ = e
+
+fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (CAS s² s¹ (GapOr s⁰)) -> Maybe (CAS s² s¹ s⁰)
+fillGaps matches (Symbol (Gap i))
+  | rematch@(Just _) <- Map.lookup i matches  = rematch
+
+exploreEquality :: (Eq s⁰, Eq s¹, Eq s²)
+           => [Expattern s² s¹ s⁰] -> CAS s² s¹ s⁰ -> Equality s² s¹ s⁰
+exploreEquality tfms = undefined
