@@ -18,6 +18,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     CAS.Dumb.Tree
                        CAS.Dumb.Symbols
+                       CAS.Dumb.Symbols.ASCII
   other-modules:       CAS.Dumb.Util.These
   other-extensions:    DeriveFunctor
   build-depends:       base >=4.8 && <4.11, hashable >=1.2 && <1.3
