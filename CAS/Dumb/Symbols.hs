@@ -20,6 +20,7 @@ import qualified Language.Haskell.TH.Syntax as Hs
 
 data Symbol = NatSymbol !Integer
             | StringSymbol String
+ deriving (Eq)
 
 data Infix s = Infix {
     symbolFixity :: !Hs.Fixity
@@ -27,10 +28,21 @@ data Infix s = Infix {
   }
 type InfixSymbol = Infix String
 
+instance Eq s => Eq (Infix s) where
+  Infix _ o == Infix _ p = o==p
+
 data Encapsulation s = Encapsulation {
       leftEncaps, rightEncaps :: !s }
 
 type SEncapsulation = Encapsulation String
+
+instance Eq SEncapsulation where
+  Encapsulation l r == Encapsulation l' r'
+         = dropParens (reverse l) r == dropParens (reverse l') r'
+   where dropParens ('(':lr) (')':rr) = dropParens lr rr
+         dropParens (' ':lr) rr = dropParens lr rr
+         dropParens lr (' ':rr) = dropParens lr rr
+         dropParens lr rr = (lr,rr)
 
 parenthesise :: SEncapsulation
 parenthesise = Encapsulation "(" ")"
