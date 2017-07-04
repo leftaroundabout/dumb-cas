@@ -13,6 +13,7 @@
 
 module CAS.Dumb.Symbols.ASCII (
           module CAS.Dumb.Symbols
+        , Symbol
         -- * “Constant variable” symbols
         , a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
         -- * Pattern-matching variable symbols
@@ -21,6 +22,9 @@ module CAS.Dumb.Symbols.ASCII (
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
+
+data ASCII
+type Symbol = SymbolD ASCII
 
 a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z :: CAS' γ s² s¹ Symbol
 [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]
