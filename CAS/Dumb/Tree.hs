@@ -37,10 +37,12 @@ instance (SH.Hashable γ, SH.Hashable s⁰, SH.Hashable s¹, SH.Hashable s²)
               => SH.Hashable (CAS' γ s² s¹ s⁰)
 
 
-data Equality' γ s² s¹ s⁰ = Equality {
-   originalExpression :: !(CAS' γ s² s¹ s⁰)
- , transformationOptions :: [Equality' γ s² s¹ s⁰]
- }
+infixr 4 :=, :=:
+data Equality' γ s² s¹ s⁰
+  = (:=) { originalExpression :: !(CAS' γ s² s¹ s⁰)
+         , transformationOptions :: [Equality' γ s² s¹ s⁰] }
+  | (:=:) { originalExpression :: !(CAS' γ s² s¹ s⁰)
+          , transformedExpression :: !(CAS' γ s² s¹ s⁰) }
 type Equality = Equality' Void
 
 type GapId = Int
@@ -63,10 +65,11 @@ matchPattern _ _ = Nothing
 
 infixl 1 &==
 (&==) :: (Eq s⁰, Eq s¹, Eq s²) => CAS s² s¹ s⁰ -> Eqspattern s² s¹ s⁰ -> CAS s² s¹ s⁰
-e &== Equality orig (Equality alt _:_)
+e &== orig:=:alt
   | Just varMatches <- matchPattern orig e
       = case fillGaps varMatches alt of
           Just refilled -> refilled
+e &== orig := (alt:=_):_ = e &== orig:=:alt
 e &== _ = e
 
 fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (Expattern s² s¹ s⁰) -> Maybe (CAS s² s¹ s⁰)
