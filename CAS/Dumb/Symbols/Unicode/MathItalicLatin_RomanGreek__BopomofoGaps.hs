@@ -7,6 +7,12 @@
 -- Stability   : experimental
 -- Portability : portable
 -- 
+-- This module contains a collection of symbols that should be sufficient for usage
+-- in most algebra applications. It avoids polluting the namespace with single-letter
+-- variables (which are often used as local variables, leading to shadowing issues),
+-- by replacing also the Latin letters with less common Unicode symbols. If you're
+-- not concerned with this and prefer symbols that can directly be entered on any
+-- Western keyboard, use the "CAS.Dumb.Symbols.ASCII" module instead.
 
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -26,8 +32,8 @@ module CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps (
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 
-data Unicode_MathItalicLatin_Greeknormal__BopomofoGaps
-type Symbol = SymbolD Unicode_MathItalicLatin_Greeknormal__BopomofoGaps
+data Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
+type Symbol = SymbolD Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
 
 -- $UnicodeMathSymHelp
 -- Unicode mathematical italic letters. Italic is the default way maths symbols appear in
