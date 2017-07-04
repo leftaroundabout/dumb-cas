@@ -11,7 +11,13 @@
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 
-module CAS.Dumb.Symbols.ASCII where
+module CAS.Dumb.Symbols.ASCII (
+          module CAS.Dumb.Symbols
+        -- * “Constant variable” symbols
+        , a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+        -- * Pattern-matching variable symbols
+        , _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
+        ) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
