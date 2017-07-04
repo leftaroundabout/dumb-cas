@@ -18,8 +18,8 @@ import CAS.Dumb.Tree
 import Data.Monoid
 import qualified Language.Haskell.TH.Syntax as Hs
 
-data Symbol = NatSymbol !Integer
-            | StringSymbol String
+data SymbolD σ = NatSymbol !Integer
+               | StringSymbol String
  deriving (Eq)
 
 data Infix s = Infix {
@@ -79,7 +79,7 @@ symbolFunction f (Encapsulation l r) a@(Gap _)
 symbolFunction f (Encapsulation l r) a
     = Function (Encapsulation (f<>l) r) a
 
-instance Num (CAS' γ InfixSymbol SEncapsulation Symbol) where
+instance Num (CAS' γ InfixSymbol SEncapsulation (SymbolD σ)) where
   fromInteger n
    | n<0        = negate . fromInteger $ -n
    | otherwise  = Symbol $ NatSymbol n
@@ -90,7 +90,8 @@ instance Num (CAS' γ InfixSymbol SEncapsulation Symbol) where
   signum = symbolFunction "signum " parenthesise
   negate = symbolFunction "negate " parenthesise
 
-showsPrecASCIISymbol :: Show γ => Int -> CAS' γ InfixSymbol SEncapsulation Symbol -> ShowS
+showsPrecASCIISymbol
+    :: Show γ => Int -> CAS' γ InfixSymbol SEncapsulation (SymbolD σ) -> ShowS
 showsPrecASCIISymbol _ (Symbol (StringSymbol s)) = (s++)
 showsPrecASCIISymbol _ (Symbol (NatSymbol n)) = shows n
 showsPrecASCIISymbol p (Function (Encapsulation l r) s)
