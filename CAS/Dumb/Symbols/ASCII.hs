@@ -7,6 +7,12 @@
 -- Stability   : experimental
 -- Portability : portable
 -- 
+-- Single-letter variable symbols.
+--
+-- Defining such variables on the top level, while convenient for brevity, is a bit
+-- troublesome because such are often used as local variables in Haskell code. It is
+-- recommended to use "CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps"
+-- instead of this module.
 
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE FlexibleInstances     #-}
