@@ -15,7 +15,7 @@
 module Main where
 
 import CAS.Dumb.Tree
-import CAS.Dumb.Symbols.ASCII
+import CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -30,12 +30,12 @@ type Expr = CAS InfixSymbol SEncapsulation Symbol
 tests :: TestTree
 tests = testGroup "Tests"
   [ testGroup "Explicit transformations"
-     [ testCase "a + b * c  &~:  𝑥+𝑦 :=: 𝑦+𝑥" $
-      (a + b * c &~: _x+_y :=: _y+_x) @?= (b * c + a :: Expr)
-     , testCase "(a+b) * c  &~:  𝑥+𝑦 :=: 𝑦+𝑥" $
-      ((a+b) * c &~: _x+_y :=: _y+_x) @?= ((b+a) * c :: Expr)
-     , testCase "a*b - c*d  &~:  𝑥*𝑦 :=: 𝑦*𝑥" $
-      (a*b - c*d &~: _x*_y :=: _y*_x) @?= (b*a - d*c :: Expr)
+     [ testCase "𝑎 + 𝑏 * 𝑐  &~:  ㄖ+ㄈ :=: ㄈ+ㄖ" $
+      (𝑎 + 𝑏 * 𝑐 &~: ㄖ+ㄈ :=: ㄈ+ㄖ) @?= (𝑏 * 𝑐 + 𝑎 :: Expr)
+     , testCase "(𝑎+𝑏) * 𝑐  &~:  ㄖ+ㄈ :=: ㄈ+ㄖ" $
+      ((𝑎+𝑏) * 𝑐 &~: ㄖ+ㄈ :=: ㄈ+ㄖ) @?= ((𝑏+𝑎) * 𝑐 :: Expr)
+     , testCase "𝑎*𝑏 - 𝑐*𝑑  &~:  ㄖ*ㄈ :=: ㄈ*ㄖ" $
+      (𝑎*𝑏 - 𝑐*𝑑 &~: ㄖ*ㄈ :=: ㄈ*ㄖ) @?= (𝑏*𝑎 - 𝑑*𝑐 :: Expr)
      ]
   ]
 
