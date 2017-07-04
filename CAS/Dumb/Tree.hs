@@ -63,7 +63,7 @@ matchPattern (Operator o x y) (Operator o' ξ υ)
      traverseUnionConflicts (\v w -> guard (v==w) >> Just v) xmatches ymatches
 matchPattern _ _ = Nothing
 
-infixl 1 &~:
+infixl 1 &~:, &~?
 
 -- | @expr '&~:' pat ':=:' rep@ replaces every occurence of @pat@ within @expr@ with @rep@.
 --
@@ -77,6 +77,21 @@ e &~: orig:=:alt
 Function f x &~: p = Function f $ x&~:p
 Operator o x y &~: p = Operator o (x&~:p) (y&~:p)
 e &~: _ = e
+
+-- | @expr '&~?' pat ':=:' rep@ gives every possible way @pat@ can be replaced exactly
+-- once within @expr@.
+--
+-- For example, <http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathItalicLatin_RomanGreek__BopomofoGaps.html#v:-119886- 𝑎>·<http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathItalicLatin_RomanGreek__BopomofoGaps.html#v:-119887- 𝑏> − <http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathItalicLatin_RomanGreek__BopomofoGaps.html#v:-119888- 𝑐>·<http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathItalicLatin_RomanGreek__BopomofoGaps.html#v:-119889- 𝑑> '&~?' <http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathItalicLatin_RomanGreek__BopomofoGaps.html#v:-12549- ㄅ>·<http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathItalicLatin_RomanGreek__BopomofoGaps.html#v:-12568- ㄘ> ':=:' ㄘ·ㄅ yields [𝑏·𝑎 − 𝑐·𝑑, 𝑎·𝑏 − 𝑑·𝑐].
+(&~?) :: (Eq s⁰, Eq s¹, Eq s²) => CAS s² s¹ s⁰ -> Eqspattern s² s¹ s⁰ -> [CAS s² s¹ s⁰]
+e &~? orig := (alt:=_):_ = e &~? orig:=:alt
+e &~? orig:=:alt
+  | Just varMatches <- matchPattern orig e
+      = case fillGaps varMatches alt of
+          Just refilled -> [refilled]
+Function f x &~? p = Function f <$> (x&~?p)
+Operator o x y &~? p = (flip (Operator o) y <$> (x&~?p))
+                    ++ (      Operator o  x <$> (y&~?p))
+e &~? _ = []
 
 fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (Expattern s² s¹ s⁰) -> Maybe (CAS s² s¹ s⁰)
 fillGaps matches (Gap i)
