@@ -72,6 +72,10 @@ e &== _ = e
 fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (Expattern s² s¹ s⁰) -> Maybe (CAS s² s¹ s⁰)
 fillGaps matches (Gap i)
   | rematch@(Just _) <- Map.lookup i matches  = rematch
+fillGaps matches (Symbol s) = Just $ Symbol s
+fillGaps matches (Function f x) = Function f <$> fillGaps matches x
+fillGaps matches (Operator o x y) = Operator o <$> fillGaps matches x <*> fillGaps matches y
+fillGaps _ _ = Nothing
 
 exploreEquality :: (Eq s⁰, Eq s¹, Eq s²)
            => [Expattern s² s¹ s⁰] -> CAS s² s¹ s⁰ -> Equality s² s¹ s⁰
