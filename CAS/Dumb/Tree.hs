@@ -65,11 +65,13 @@ matchPattern _ _ = Nothing
 
 infixl 1 &~:
 (&~:) :: (Eq s⁰, Eq s¹, Eq s²) => CAS s² s¹ s⁰ -> Eqspattern s² s¹ s⁰ -> CAS s² s¹ s⁰
+e &~: orig := (alt:=_):_ = e &~: orig:=:alt
 e &~: orig:=:alt
   | Just varMatches <- matchPattern orig e
       = case fillGaps varMatches alt of
           Just refilled -> refilled
-e &~: orig := (alt:=_):_ = e &~: orig:=:alt
+Function f x &~: p = Function f $ x&~:p
+Operator o x y &~: p = Operator o (x&~:p) (y&~:p)
 e &~: _ = e
 
 fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (Expattern s² s¹ s⁰) -> Maybe (CAS s² s¹ s⁰)
