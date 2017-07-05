@@ -16,21 +16,31 @@
 
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE CPP                   #-}
 
 module CAS.Dumb.Symbols.ASCII (
           module CAS.Dumb.Symbols
         , Symbol
         -- * “Constant variable” symbols
+        -- ** Lowercase letters
         , a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+        -- ** Uppercase letters
+        -- $uppercaseCaveat
+#if __GLASGOW_HASKELL__ > 802
+        , pattern A, pattern B, pattern C, pattern D, pattern E, pattern F, pattern G, pattern H, pattern I, pattern J, pattern K, pattern L, pattern M, pattern N, pattern O, pattern P, pattern Q, pattern R, pattern S, pattern T, pattern U, pattern V, pattern W, pattern X, pattern Y, pattern Z
+#endif
         -- * Pattern-matching variable symbols
         , _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
         ) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
+import CAS.Dumb.Symbols.PatternGenerator
 
 data ASCII
 type Symbol = SymbolD ASCII
+type Expression' γ s² s¹ = CAS' γ s² s¹ Symbol
 
 a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z :: CAS' γ s² s¹ Symbol
 [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]
@@ -41,6 +51,13 @@ _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
 [_a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z]
     = Gap . fromEnum <$> ['a'..'z']
 
+-- $uppercaseCaveat
+-- These are only available in GHC>8.2. The ability to use uppercase letters as variables
+-- hinges on a hack using GHC's still recent
+-- <https://ghc.haskell.org/trac/ghc/wiki/PatternSynonyms pattern synonyms> feature.
+#if __GLASGOW_HASKELL__ > 802
+mkUppercaseSymbols ''Expression' ['A'..'Z']
+#endif
 
 instance Show (CAS InfixSymbol SEncapsulation Symbol) where
   showsPrec = showsPrecASCIISymbol
