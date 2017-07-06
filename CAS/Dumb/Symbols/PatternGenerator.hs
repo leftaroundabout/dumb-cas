@@ -19,12 +19,14 @@ import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 
 import Language.Haskell.TH
+import Data.Char
 
 
 #if __GLASGOW_HASKELL__ > 802
 mkUppercaseSymbols :: Name -> [Char] -> DecsQ
 mkUppercaseSymbols casType = fmap concat . mapM mkSymbol
- where mkSymbol c = return
+ where mkSymbol c
+        | isUpper c = return
          [ PatSynSigD patName (ForallT [] [] . ForallT [] []
              $ ConT casType `AppT` γ `AppT` s² `AppT` s¹
              )
@@ -35,6 +37,8 @@ mkUppercaseSymbols casType = fmap concat . mapM mkSymbol
                    ('Symbol `ConP` ['StringSymbol `ConP` [ListP [LitP $ CharL c]]])
         -- pattern patName = Symbol (StringSymbol 'c')
          ] 
+        | otherwise = error $ "Can only make symbols out of uppercase letters, which '"
+                                ++ [c] ++ "' is not."
         where patName = mkName [c]
               [γ,s²,s¹] = VarT . mkName <$> ["γ","s²","s¹"]
 #endif
