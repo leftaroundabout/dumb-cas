@@ -25,12 +25,21 @@ module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps (
         -- * “Constant variable” symbols
         -- ** Lowercase letters
         -- $UnicodeMathSymHelp
+        -- ** Latin
         , 𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧
+        -- ** Greek
         , α,β,γ,δ,ε,ζ,η,θ,ϑ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,ϱ,σ,ς,τ,υ,ϕ,φ,χ,ψ,ω
         -- ** Uppercase letters
         -- $uppercaseCaveat
 #if __GLASGOW_HASKELL__ > 802
+        -- ** Latin
         , pattern 𝐴, pattern 𝐵, pattern 𝐶, pattern 𝐷, pattern 𝐸, pattern 𝐹, pattern 𝐺, pattern 𝐻, pattern 𝐼, pattern 𝐽, pattern 𝐾, pattern 𝐿, pattern 𝑀, pattern 𝑁, pattern 𝑂, pattern 𝑃, pattern 𝑄, pattern 𝑅, pattern 𝑆, pattern 𝑇, pattern 𝑈, pattern 𝑉, pattern 𝑊, pattern 𝑋, pattern 𝑌, pattern 𝑍
+        -- ** Greek
+        -- *** LaTeX subset
+        -- $greekUppercaseLaTeXInfo
+        , pattern Γ, pattern Δ, pattern Θ, pattern Λ, pattern Ξ, pattern Π, pattern Σ, pattern Υ, pattern Φ, pattern Ψ, pattern Ω
+        -- *** Latin-lookalike
+        , pattern Α, pattern Β, pattern Ε, pattern Ζ, pattern Η, pattern Ι, pattern Κ, pattern Μ, pattern Ν, pattern Ο, pattern Ρ, pattern Τ, pattern Χ
 #endif
         -- * Pattern-matching variable symbols
         -- $BopomofoHelp
@@ -68,6 +77,12 @@ makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχ�
 makeSymbols ''Expression' ['𝐴'..'𝑍']
 #endif
 
+-- $greekUppercaseLaTeXInfo
+-- These are the uppercase greek letters that don't have latin lookalikes. Only these
+-- are supported in LaTeX, so for doing maths it's probably best to stick to this subset.
+#if __GLASGOW_HASKELL__ > 802
+makeSymbols ''Expression' $ ['Α'..'Ρ']++['Σ'..'Ω']
+#endif
 
 -- $BopomofoHelp
 -- Using a non-European alphabet such as Bopomofo for 'Gap's (which are always only
