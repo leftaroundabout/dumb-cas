@@ -21,7 +21,7 @@
 
 module CAS.Dumb.Symbols.ASCII (
           module CAS.Dumb.Symbols
-        , Symbol
+        , Symbol, Expression, Pattern
         -- * “Constant variable” symbols
         -- ** Lowercase letters
         , a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
@@ -32,15 +32,21 @@ module CAS.Dumb.Symbols.ASCII (
 #endif
         -- * Pattern-matching variable symbols
         , _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
+        -- * Auxiliary
+        , Expression'
         ) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 import CAS.Dumb.Symbols.PatternGenerator
 
+import Data.Void
+
 data ASCII
 type Symbol = SymbolD ASCII
-type Expression' γ s² s¹ = CAS' γ s² s¹ Symbol
+type Expression' γ s² s¹ = CAS' γ s² s¹ (Symbol String)
+type Expression = Expression' Void (Infix String) (Encapsulation String)
+type Pattern = Expression' GapId (Infix String) (Encapsulation String)
 
 makeSymbols ''Expression' ['a'..'z']
 
@@ -57,12 +63,12 @@ _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
 makeSymbols ''Expression' ['A'..'Z']
 #endif
 
-instance Show (CAS InfixSymbol SEncapsulation Symbol) where
+instance Show Expression where
   showsPrec = showsPrecASCIISymbol
-instance Show (CAS' GapId InfixSymbol SEncapsulation Symbol) where
+instance Show Pattern where
   showsPrec p = showsPrecASCIISymbol p . purgeGaps
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)
          purgeGaps (Gap gid) = Symbol (StringSymbol ['_',toEnum gid])
-                                          :: (CAS InfixSymbol SEncapsulation Symbol)
+                              :: (CAS (Infix String) (Encapsulation String) (Symbol String))

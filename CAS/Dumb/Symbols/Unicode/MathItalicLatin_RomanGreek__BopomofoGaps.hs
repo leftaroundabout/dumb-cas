@@ -20,7 +20,7 @@
 
 module CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps (
           module CAS.Dumb.Symbols
-        , Symbol
+        , Symbol, Expression, Pattern
         -- * “Constant variable” symbols
         -- $UnicodeMathSymHelp
         , 𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧
@@ -28,6 +28,8 @@ module CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps (
         -- * Pattern-matching variable symbols
         -- $BopomofoHelp
         , ㄅ,ㄆ,ㄇ,ㄈ,ㄉ,ㄊ,ㄋ,ㄌ,ㄍ,ㄎ,ㄏ,ㄐ,ㄑ,ㄒ,ㄓ,ㄔ,ㄕ,ㄖ,ㄗ,ㄘ,ㄙ,ㄚ,ㄛ,ㄜ,ㄝ,ㄞ,ㄟ,ㄠ,ㄡ,ㄢ,ㄣ,ㄤ,ㄥ,ㄦ,ㄧ,ㄨ,ㄩ,ㄪ,ㄫ,ㄬ
+        -- * Auxiliary
+        , Expression'
         ) where
 
 import CAS.Dumb.Tree
@@ -35,9 +37,14 @@ import CAS.Dumb.Symbols
 
 import CAS.Dumb.Symbols.PatternGenerator
 
+import Data.Void
+
+
 data Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
 type Symbol = SymbolD Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
-type Expression' γ s² s¹ = CAS' γ s² s¹ Symbol
+type Expression' γ s² s¹ = CAS' γ s² s¹ (Symbol String)
+type Expression = Expression' Void (Infix String) (Encapsulation String)
+type Pattern = Expression' GapId (Infix String) (Encapsulation String)
 
 -- $UnicodeMathSymHelp
 -- Unicode mathematical italic letters. Italic is the default way maths symbols appear in
@@ -67,12 +74,11 @@ makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχ�
   ,ㄠ,ㄡ,ㄢ,ㄣ,ㄤ,ㄥ,ㄦ,ㄧ,ㄨ,ㄩ,ㄪ,ㄫ,ㄬ]
     = Gap . fromEnum <$> ['ㄅ'..'ㄬ']
 
-instance Show (CAS InfixSymbol SEncapsulation Symbol) where
+instance Show Expression where
   showsPrec = showsPrecASCIISymbol
-instance Show (CAS' GapId InfixSymbol SEncapsulation Symbol) where
+instance Show Pattern where
   showsPrec p = showsPrecASCIISymbol p . purgeGaps
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)
-         purgeGaps (Gap gid) = Symbol (StringSymbol [toEnum gid])
-                                          :: (CAS InfixSymbol SEncapsulation Symbol)
+         purgeGaps (Gap gid) = Symbol (StringSymbol [toEnum gid]) :: Expression
