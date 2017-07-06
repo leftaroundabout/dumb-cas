@@ -1,5 +1,5 @@
 -- |
--- Module      : CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps
+-- Module      : CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
 -- Copyright   : (c) Justus Sagemüller 2017
 -- License     : GPL v3
 -- 
@@ -18,7 +18,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps (
+module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps (
           module CAS.Dumb.Symbols
         , Symbol, Expression, Pattern
         -- * “Constant variable” symbols
@@ -40,8 +40,8 @@ import CAS.Dumb.Symbols.PatternGenerator
 import Data.Void
 
 
-data Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
-type Symbol = SymbolD Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
+data Unicode_MathLatin_RomanGreek__BopomofoGaps
+type Symbol = SymbolD Unicode_MathLatin_RomanGreek__BopomofoGaps
 type Expression' γ s² s¹ = CAS' γ s² s¹ (Symbol String)
 type Expression = Expression' Void (Infix String) (Encapsulation String)
 type Pattern = Expression' GapId (Infix String) (Encapsulation String)
