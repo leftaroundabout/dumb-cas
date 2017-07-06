@@ -16,6 +16,7 @@
 
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps (
           module CAS.Dumb.Symbols
@@ -32,8 +33,11 @@ module CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps (
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 
+import CAS.Dumb.Symbols.PatternGenerator
+
 data Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
 type Symbol = SymbolD Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
+type Expression' γ s² s¹ = CAS' γ s² s¹ Symbol
 
 -- $UnicodeMathSymHelp
 -- Unicode mathematical italic letters. Italic is the default way maths symbols appear in
@@ -41,14 +45,11 @@ type Symbol = SymbolD Unicode_MathItalicLatin_RomanGreek__BopomofoGaps
 --
 -- Note that the symbols are at runtime /not/ stored in italic form, e.g.
 -- @'𝑚' ≡ 'Symbol' ('StringSymbol' "m")@.
-𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧 :: CAS' γ s² s¹ Symbol
+𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧 :: Expression' γ s² s¹
 [𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧]
     = Symbol . StringSymbol . pure <$> ['a'..'z']
 
-α,β,γ,δ,ε,ζ,η,θ,ϑ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,ϱ,σ,ς,τ,υ,ϕ,φ,χ,ψ,ω :: CAS' γ s² s¹ Symbol
-[α,β,γ,δ,ε,ζ,η,θ,ϑ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,ϱ,σ,ς,τ,υ,ϕ,φ,χ,ψ,ω]
-    = Symbol . StringSymbol <$> words
- "α β γ δ ε ζ η θ ϑ ι κ λ μ ν ξ ο π ρ ϱ σ ς τ υ ϕ φ χ ψ ω"
+makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχψω"
 
 
 -- $BopomofoHelp
