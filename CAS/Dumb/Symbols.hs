@@ -10,6 +10,7 @@
 
 {-# LANGUAGE PatternSynonyms           #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE OverloadedStrings         #-}
 
 module CAS.Dumb.Symbols where
 
@@ -18,15 +19,16 @@ import CAS.Dumb.Tree
 import Data.Monoid
 import qualified Language.Haskell.TH.Syntax as Hs
 
-data SymbolD σ = NatSymbol !Integer
-               | StringSymbol String
+import Data.String (IsString)
+
+data SymbolD σ c = NatSymbol !Integer
+                 | StringSymbol c
  deriving (Eq)
 
 data Infix s = Infix {
     symbolFixity :: !Hs.Fixity
   , infixSymbox :: !s
   }
-type InfixSymbol = Infix String
 
 instance Eq s => Eq (Infix s) where
   Infix _ o == Infix _ p = o==p
@@ -34,9 +36,7 @@ instance Eq s => Eq (Infix s) where
 data Encapsulation s = Encapsulation {
       leftEncaps, rightEncaps :: !s }
 
-type SEncapsulation = Encapsulation String
-
-instance Eq SEncapsulation where
+instance Eq (Encapsulation String) where
   Encapsulation l r == Encapsulation l' r'
          = dropParens (reverse l) r == dropParens (reverse l') r'
    where dropParens ('(':lr) (')':rr) = dropParens lr rr
@@ -44,7 +44,7 @@ instance Eq SEncapsulation where
          dropParens lr (' ':rr) = dropParens lr rr
          dropParens lr rr = (lr,rr)
 
-parenthesise :: SEncapsulation
+parenthesise :: IsString s => Encapsulation s
 parenthesise = Encapsulation "(" ")"
       
 symbolInfix :: Infix s² -- ^ The operator we want to describe
@@ -79,7 +79,8 @@ symbolFunction f (Encapsulation l r) a@(Gap _)
 symbolFunction f (Encapsulation l r) a
     = Function (Encapsulation (f<>l) r) a
 
-instance Num (CAS' γ InfixSymbol SEncapsulation (SymbolD σ)) where
+instance (Monoid c, IsString c)
+          => Num (CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)) where
   fromInteger n
    | n<0        = negate . fromInteger $ -n
    | otherwise  = Symbol $ NatSymbol n
@@ -91,7 +92,7 @@ instance Num (CAS' γ InfixSymbol SEncapsulation (SymbolD σ)) where
   negate = symbolFunction "negate " parenthesise
 
 showsPrecASCIISymbol
-    :: Show γ => Int -> CAS' γ InfixSymbol SEncapsulation (SymbolD σ) -> ShowS
+    :: Show γ => Int -> CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String) -> ShowS
 showsPrecASCIISymbol _ (Symbol (StringSymbol s)) = (s++)
 showsPrecASCIISymbol _ (Symbol (NatSymbol n)) = shows n
 showsPrecASCIISymbol p (Function (Encapsulation l r) s)
