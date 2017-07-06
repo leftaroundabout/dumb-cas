@@ -42,9 +42,7 @@ data ASCII
 type Symbol = SymbolD ASCII
 type Expression' γ s² s¹ = CAS' γ s² s¹ Symbol
 
-a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z :: CAS' γ s² s¹ Symbol
-[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]
-    = Symbol . StringSymbol . pure <$> ['a'..'z']
+makeSymbols ''Expression' ['a'..'z']
 
 _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
     :: CAS' GapId s² s¹ s⁰
@@ -56,7 +54,7 @@ _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
 -- hinges on a hack using GHC's still recent
 -- <https://ghc.haskell.org/trac/ghc/wiki/PatternSynonyms pattern synonyms> feature.
 #if __GLASGOW_HASKELL__ > 802
-mkUppercaseSymbols ''Expression' ['A'..'Z']
+makeSymbols ''Expression' ['A'..'Z']
 #endif
 
 instance Show (CAS InfixSymbol SEncapsulation Symbol) where

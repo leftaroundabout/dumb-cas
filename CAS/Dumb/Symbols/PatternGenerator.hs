@@ -22,24 +22,34 @@ import Language.Haskell.TH
 import Data.Char
 
 
-#if __GLASGOW_HASKELL__ > 802
-mkUppercaseSymbols :: Name -> [Char] -> DecsQ
-mkUppercaseSymbols casType = fmap concat . mapM mkSymbol
+makeSymbols :: Name -> [Char] -> DecsQ
+makeSymbols casType = fmap concat . mapM mkSymbol
  where mkSymbol c
+        | isLower c = return
+         [ SigD symbName $ ForallT [PlainTV γ, PlainTV s¹, PlainTV s²] [] typeName
+        -- c :: casType γ s² s¹
+         , ValD (VarP symbName)
+                (NormalB $ InfixE (Just $ ConE 'Symbol)
+                                  (VarE '($))
+                                  (Just $ ConE 'StringSymbol `AppE` LitE (StringL [c])) )
+                []
+        -- c = Symbol $ StringSymbol "c"
+         ]
+#if __GLASGOW_HASKELL__ > 802
         | isUpper c = return
-         [ PatSynSigD patName (ForallT [] [] . ForallT [] []
-             $ ConT casType `AppT` γ `AppT` s² `AppT` s¹
-             )
-        -- pattern patName :: casType γ s² s¹
-         , PatSynD patName
+         [ PatSynSigD symbName (ForallT [] [] $ ForallT [] [] typeName)
+        -- pattern c :: casType γ s² s¹
+         , PatSynD symbName
                    (PrefixPatSyn [])
                    ImplBidir
                    ('Symbol `ConP` ['StringSymbol `ConP` [ListP [LitP $ CharL c]]])
-        -- pattern patName = Symbol (StringSymbol 'c')
+        -- pattern c = Symbol (StringSymbol ['c'])
          ] 
-        | otherwise = error $ "Can only make symbols out of uppercase letters, which '"
-                                ++ [c] ++ "' is not."
-        where patName = mkName [c]
-              [γ,s²,s¹] = VarT . mkName <$> ["γ","s²","s¹"]
 #endif
+        | otherwise = error
+             $ "Can only make symbols out of lower- or uppercase letters, which '"
+                                ++ [c] ++ "' is not."
+        where symbName = mkName [c]
+              typeName = ConT casType `AppT`  VarT γ `AppT`  VarT s² `AppT` VarT s¹
+              [γ,s²,s¹] = mkName <$> ["γ","s²","s¹"]
 
