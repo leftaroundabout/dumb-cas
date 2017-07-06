@@ -91,13 +91,44 @@ instance (Monoid c, IsString c)
   signum = symbolFunction "signum " parenthesise
   negate = symbolFunction "negate " parenthesise
 
-showsPrecASCIISymbol
-    :: Show γ => Int -> CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String) -> ShowS
-showsPrecASCIISymbol _ (Symbol (StringSymbol s)) = (s++)
+
+class ASCIISymbols c where
+  fromASCIISymbol :: Char -> c
+  toASCIISymbols :: c -> String
+
+instance ASCIISymbols String where
+  fromASCIISymbol = pure
+  toASCIISymbols = id
+
+
+showsPrecASCIISymbol :: (Show γ, ASCIISymbols c)
+       => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+showsPrecASCIISymbol _ (Symbol (StringSymbol s)) = (toASCIISymbols s++)
 showsPrecASCIISymbol _ (Symbol (NatSymbol n)) = shows n
 showsPrecASCIISymbol p (Function (Encapsulation l r) s)
-    = showParen (p>9) $ (l++) . showsPrecASCIISymbol 0 s . (r++)
+    = showParen (p>9) $ (toASCIISymbols l++) . showsPrecASCIISymbol 0 s . (toASCIISymbols r++)
 showsPrecASCIISymbol p (Operator (Infix (Hs.Fixity fxty _) fx) a b)
-    = showParen (p>=fxty) $ showsPrecASCIISymbol 0 a . (fx++) . showsPrecASCIISymbol 0 b
+    = showParen (p>=fxty) $ showsPrecASCIISymbol 0 a . (toASCIISymbols fx++) . showsPrecASCIISymbol 0 b
 showsPrecASCIISymbol p (Gap γ)
     = showParen (p>9) $ ("Gap "++) . showsPrec 10 γ
+
+class UnicodeSymbols c where
+  fromUnicodeSymbol :: Char -> c
+  toUnicodeSymbols :: c -> String
+
+instance UnicodeSymbols String where
+  fromUnicodeSymbol = pure
+  toUnicodeSymbols = id
+
+
+showsPrecUnicodeSymbol :: (Show γ, UnicodeSymbols c)
+       => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+showsPrecUnicodeSymbol _ (Symbol (StringSymbol s)) = (toUnicodeSymbols s++)
+showsPrecUnicodeSymbol _ (Symbol (NatSymbol n)) = shows n
+showsPrecUnicodeSymbol p (Function (Encapsulation l r) s)
+    = showParen (p>9) $ (toUnicodeSymbols l++) . showsPrecUnicodeSymbol 0 s . (toUnicodeSymbols r++)
+showsPrecUnicodeSymbol p (Operator (Infix (Hs.Fixity fxty _) fx) a b)
+    = showParen (p>=fxty) $ showsPrecUnicodeSymbol 0 a . (toUnicodeSymbols fx++) . showsPrecUnicodeSymbol 0 b
+showsPrecUnicodeSymbol p (Gap γ)
+    = showParen (p>9) $ ("Gap "++) . showsPrec 10 γ
+

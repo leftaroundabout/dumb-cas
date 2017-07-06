@@ -49,12 +49,7 @@ type Pattern = Expression' GapId (Infix String) (Encapsulation String)
 -- $UnicodeMathSymHelp
 -- Unicode mathematical italic letters. Italic is the default way maths symbols appear in
 -- e.g. LaTeX-rendered documents, thus it makes sense to use them here.
---
--- Note that the symbols are at runtime /not/ stored in italic form, e.g.
--- @'𝑚' ≡ 'Symbol' ('StringSymbol' "m")@.
-𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧 :: Expression' γ s² s¹
-[𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧]
-    = Symbol . StringSymbol . pure <$> ['a'..'z']
+makeSymbols ''Expression' "𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧"
 
 makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχψω"
 
@@ -75,9 +70,9 @@ makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχ�
     = Gap . fromEnum <$> ['ㄅ'..'ㄬ']
 
 instance Show Expression where
-  showsPrec = showsPrecASCIISymbol
+  showsPrec = showsPrecUnicodeSymbol
 instance Show Pattern where
-  showsPrec p = showsPrecASCIISymbol p . purgeGaps
+  showsPrec p = showsPrecUnicodeSymbol p . purgeGaps
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)
