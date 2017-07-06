@@ -18,6 +18,8 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE CPP                   #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE UnicodeSyntax         #-}
 
 module CAS.Dumb.Symbols.ASCII (
           module CAS.Dumb.Symbols
@@ -33,7 +35,7 @@ module CAS.Dumb.Symbols.ASCII (
         -- * Pattern-matching variable symbols
         , _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
         -- * Auxiliary
-        , Expression'
+        , Expression', ASCIISymbols(..)
         ) where
 
 import CAS.Dumb.Tree
@@ -41,8 +43,10 @@ import CAS.Dumb.Symbols
 import CAS.Dumb.Symbols.PatternGenerator
 
 import Data.Void
+import Data.Monoid
 
 data ASCII
+
 type Symbol = SymbolD ASCII
 type Expression' γ s² s¹ = CAS' γ s² s¹ (Symbol String)
 type Expression = Expression' Void (Infix String) (Encapsulation String)
@@ -63,12 +67,14 @@ _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
 makeSymbols ''Expression' ['A'..'Z']
 #endif
 
-instance Show Expression where
+instance ASCIISymbols c => Show (CAS (Infix c) (Encapsulation c) (Symbol c)) where
   showsPrec = showsPrecASCIISymbol
-instance Show Pattern where
+instance ∀ c . (ASCIISymbols c, Monoid c)
+       => Show (CAS' GapId (Infix c) (Encapsulation c) (Symbol c)) where
   showsPrec p = showsPrecASCIISymbol p . purgeGaps
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)
-         purgeGaps (Gap gid) = Symbol (StringSymbol ['_',toEnum gid])
-                              :: (CAS (Infix String) (Encapsulation String) (Symbol String))
+         purgeGaps (Gap gid) = Symbol (StringSymbol $ fromASCIISymbol '_'
+                                                    <>fromASCIISymbol (toEnum gid) )
+                              :: (CAS (Infix c) (Encapsulation c) (Symbol c))
