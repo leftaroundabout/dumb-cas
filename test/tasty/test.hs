@@ -15,7 +15,7 @@
 module Main where
 
 import CAS.Dumb.Tree
-import CAS.Dumb.Symbols.Unicode.MathItalicLatin_RomanGreek__BopomofoGaps
+import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
 
 import Test.Tasty
 import Test.Tasty.HUnit
