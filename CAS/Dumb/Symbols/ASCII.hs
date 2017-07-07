@@ -5,8 +5,7 @@ module CAS.Dumb.Symbols.ASCII () where
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols.PatternGenerator
 
-data Symbol = StringSymbol String
-type Expression' γ s² s¹ = CAS' γ s² s¹ Symbol
+type EP g = CAS g
 
-mkUppercaseSymbols ''Expression' ['A'..'Z']
+templateFoo ''EP ['A'..'Z']
 

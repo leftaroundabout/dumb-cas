@@ -4,6 +4,6 @@ import CAS.Dumb.Tree
 
 import Language.Haskell.TH
 
-mkUppercaseSymbols :: Name -> [Char] -> DecsQ
-mkUppercaseSymbols _ _ = return []
+templateFoo :: Name -> [Char] -> DecsQ
+templateFoo _ _ = return []
 
