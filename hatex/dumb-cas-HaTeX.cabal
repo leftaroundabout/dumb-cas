@@ -21,7 +21,8 @@ library
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.11
                        , dumb-cas >=0.1 && <0.2
-                       , HaTeX >= 3.15 && < 3.20
-                       , text, containers
+                       , HaTeX > 3.17.2.1 && < 3.20
+                       , text
+                       , unordered-containers>=0.2.5 && < 0.2.9, hashable
   -- hs-source-dirs:      
   default-language:    Haskell2010

@@ -21,8 +21,10 @@ import Text.LaTeX.Packages.AMSMath
 import qualified Data.Text as Txt
 import Data.String (IsString(..))
 import Data.Char (isAlpha, isUpper, isLower)
+import Data.Tuple (swap)
 
-import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as Map
+import Data.Hashable
 
 import Control.Monad
 
@@ -32,31 +34,46 @@ instance ASCIISymbols LaTeX where
    | isAlpha c  = fromString [c]
   toASCIISymbols (TeXRaw s) = Txt.unpack s
 
-infixl 3 <|>
-a<|>b = Map.union a b
-
 instance UnicodeSymbols LaTeX where
-  fromUnicodeSymbol = \c -> case Map.lookup c mapping of Just lc -> lc
-   where mapping = mapToLaTeXWith id     "𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧"
-                                         "abcdefghijklmnopqrstuvwxyz"
-               <|> mapToLaTeXWith mathbf ['𝐚'..'𝐳']
-                                         ['a'..'z']
-               <|> Map.fromList (zip
+  fromUnicodeSymbol c
+   | Just lc <- Map.lookup c mappingFromUnicode  = lc
+  toUnicodeSymbols lc
+   | Just c <- Map.lookup lc mappingToUnicode    = [c]
+  
+mappingFromUnicode :: Map.HashMap Char LaTeX
+mappingToUnicode :: Map.HashMap LaTeX Char
+InvertibleMap mappingFromUnicode mappingToUnicode
+   = mapToLaTeXWith id     "𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧"
+                           "abcdefghijklmnopqrstuvwxyz"
+ <|> mapToLaTeXWith mathbf ['𝐚'..'𝐳']
+                           ['a'..'z']
+ <|> fromAssocList (zip
            ['α',  'β', 'γ',  'δ',  'ε',       'ζ', 'η','θ',  'ϑ',     'ι', 'κ',  'λ'   ]
            [alpha,beta,gamma,delta,varepsilon,zeta,eta,theta,vartheta,iota,kappa,lambda])
-               <|> Map.fromList (zip
+ <|> fromAssocList (zip
            ['μ','ν','ξ','π','ρ','ϱ',   'σ',  'ς',     'τ','υ',    'ϕ','φ',   'χ','ψ', 'ω' ]
            [mu, nu, xi, pi, rho,varrho,sigma,varsigma,tau,upsilon,phi,varphi,chi,psi,omega])
-  toUnicodeSymbols (TeXRaw s) = italicise <$> Txt.unpack s
-   where italicise c
-          | isLower c  = let i = fromEnum c - fromEnum 'a'
-                         in toEnum $ fromEnum '𝑎' + i
-          | isUpper c  = let i = fromEnum c - fromEnum 'A'
-                         in toEnum $ fromEnum '𝐴' + i
 
 remapWith :: (a->b) -> [a] -> [a] -> [(a, b)]
 remapWith f = zipWith (\lc rc -> (lc, f rc))
 
-mapToLaTeXWith :: (LaTeX->LaTeX) -> [Char] -> [Char] -> Map.Map Char LaTeX
-mapToLaTeXWith f l r = Map.fromList $ remapWith (f . fromString . pure) l r
+mapToLaTeXWith :: (LaTeX->LaTeX) -> [Char] -> [Char] -> InvertibleMap Char LaTeX
+mapToLaTeXWith f l r = fromAssocList $ remapWith (f . fromString . pure) l r
+
+
+
+data InvertibleMap a b = InvertibleMap {
+      fwdMapping :: Map.HashMap a b
+    , revMapping :: Map.HashMap b a
+    }
+
+fromAssocList :: (Hashable a, Hashable b, Eq a, Eq b)
+                 => [(a,b)] -> InvertibleMap a b
+fromAssocList assocs = InvertibleMap (Map.fromList assocs) (Map.fromList $ map swap assocs)
+
+infixl 3 <|>
+(<|>) :: (Hashable a, Hashable b, Eq a, Eq b)
+                 => InvertibleMap a b -> InvertibleMap a b -> InvertibleMap a b
+InvertibleMap af ar<|>InvertibleMap bf br
+   = InvertibleMap (Map.union af bf) (Map.union ar br)
 
