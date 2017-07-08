@@ -16,7 +16,8 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     CAS.Dumb.Tree
+  exposed-modules:     CAS.Dumb
+                       CAS.Dumb.Tree
                        CAS.Dumb.Symbols
                        CAS.Dumb.Symbols.ASCII
                        CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
