@@ -16,6 +16,7 @@
 
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -46,6 +47,9 @@ import Data.Void
 import Data.Monoid
 
 data ASCII
+instance SymbolClass ASCII where
+  type SCConstraint ASCII = ASCIISymbols
+  fromCharSymbol _ = fromASCIISymbol
 
 type Symbol = SymbolD ASCII
 type Expression' γ s² s¹ c = CAS' γ s² s¹ (Symbol c)

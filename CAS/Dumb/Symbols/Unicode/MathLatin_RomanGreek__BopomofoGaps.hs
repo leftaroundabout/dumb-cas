@@ -17,6 +17,7 @@
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UnicodeSyntax         #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE CPP                   #-}
@@ -72,6 +73,10 @@ import Data.Void
 
 
 data Unicode_MathLatin_RomanGreek__BopomofoGaps
+instance SymbolClass Unicode_MathLatin_RomanGreek__BopomofoGaps where
+  type SCConstraint Unicode_MathLatin_RomanGreek__BopomofoGaps = UnicodeSymbols
+  fromCharSymbol _ = fromUnicodeSymbol
+
 type Symbol = SymbolD Unicode_MathLatin_RomanGreek__BopomofoGaps
 type Expression' γ s² s¹ c = CAS' γ s² s¹ (Symbol c)
 type Expression c = Expression' Void (Infix c) (Encapsulation c) c

@@ -16,10 +16,12 @@ module CAS.Dumb (
              -- * Constructing equality axioms
              , pattern (:=:)
              -- * Variable-symbols
+             , (%$>)
              , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
              ) where
 
 import CAS.Dumb.Tree
-import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
+import CAS.Dumb.Symbols
+import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))
 
 

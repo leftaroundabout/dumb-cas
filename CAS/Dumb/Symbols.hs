@@ -10,7 +10,12 @@
 
 {-# LANGUAGE PatternSynonyms           #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE ConstraintKinds           #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE UnicodeSyntax             #-}
 
 module CAS.Dumb.Symbols where
 
@@ -21,10 +26,12 @@ import qualified Language.Haskell.TH.Syntax as Hs
 
 import Data.String (IsString)
 
+import GHC.Exts (Constraint)
+
+
 data SymbolD σ c = NatSymbol !Integer
                  | PrimitiveSymbol Char
                  | StringSymbol c
- deriving (Eq)
 
 data Infix s = Infix {
     symbolFixity :: !Hs.Fixity
@@ -135,3 +142,40 @@ showsPrecUnicodeSymbol p (Operator (Infix (Hs.Fixity fxty _) fx) a b)
 showsPrecUnicodeSymbol p (Gap γ)
     = showParen (p>9) $ ("Gap "++) . showsPrec 10 γ
 
+
+
+class SymbolClass σ where
+  type SCConstraint σ :: * -> Constraint
+  fromCharSymbol :: (Functor p, SCConstraint σ c) => p σ -> Char -> c
+
+normaliseSymbols :: ∀ σ c γ s² s¹ . (SymbolClass σ, SCConstraint σ c)
+                      => CAS' γ s² s¹ (SymbolD σ c) -> CAS' γ s² s¹ (SymbolD σ c)
+normaliseSymbols = fmap nmlzSym
+ where nmlzSym (PrimitiveSymbol c) = case fromCharSymbol ([]::[σ]) of
+           fcs -> StringSymbol $ fcs c
+       nmlzSym s = s
+
+instance ∀ σ c . (SymbolClass σ, SCConstraint σ c, Eq c) => Eq (SymbolD σ c) where
+  NatSymbol i == NatSymbol j  = i==j
+  StringSymbol x == StringSymbol y  = x==y
+  PrimitiveSymbol x == PrimitiveSymbol y  = x==y
+  x@(PrimitiveSymbol c) == y  = case fromCharSymbol ([]::[σ]) of
+            fcs -> StringSymbol (fcs c)==y
+  x == y@(PrimitiveSymbol c)  = case fromCharSymbol ([]::[σ]) of
+            fcs -> x==StringSymbol (fcs c)
+  _ == _ = False
+
+infixl 4 %$>
+-- | Transform the symbols of an expression, in their underlying representation.
+--
+-- @
+-- (map succ%$> 𝑎+𝑝) * 𝑥  ≡  (𝑏+𝑞) * 𝑥
+-- @
+(%$>) :: ∀ σ c c' γ s² s¹ . (SymbolClass σ, SCConstraint σ c)
+         => (c -> c') -> CAS' γ s² s¹ (SymbolD σ c) -> CAS' γ s² s¹ (SymbolD σ c')
+f %$> Symbol (PrimitiveSymbol c) = case fromCharSymbol ([]::[σ]) of
+         fcs -> Symbol . StringSymbol . f $ fcs c
+f %$> Symbol (StringSymbol s) = Symbol . StringSymbol $ f s
+f %$> Function g q = Function g $ f %$> q
+f %$> Operator o p q = Operator o (f%$>p) (f%$>q)
+f %$> Gap γ = Gap γ

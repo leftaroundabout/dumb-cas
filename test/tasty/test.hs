@@ -11,6 +11,7 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE CPP              #-}
 
 module Main where
 
@@ -18,6 +19,7 @@ import CAS.Dumb
 
 import Test.Tasty
 import Test.Tasty.HUnit
+
 
 
 main = defaultMain tests
@@ -36,6 +38,8 @@ tests = testGroup "Tests"
       (𝑎*𝑏 - 𝑐*𝑑 &~: ㄖ*ㄈ :=: ㄈ*ㄖ) @?= (𝑏*𝑎 - 𝑑*𝑐 :: Expr)
      , testCase "𝑎*𝑏 - 𝑐*𝑑  &~?  ㄖ*ㄈ :=: ㄈ*ㄖ" $
       (𝑎*𝑏 - 𝑐*𝑑 &~? ㄖ*ㄈ :=: ㄈ*ㄖ) @?= ([𝑏*𝑎 - 𝑐*𝑑, 𝑎*𝑏 - 𝑑*𝑐] :: [Expr])
+     , testCase "Rename local symbols" $
+      (map succ%$> 𝑎+𝑝) * 𝑥  @?=  ((𝑏+𝑞) * 𝑥 :: Expr)
      ]
   ]
 
