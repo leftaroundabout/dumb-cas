@@ -48,9 +48,9 @@ import Data.Monoid
 data ASCII
 
 type Symbol = SymbolD ASCII
-type Expression' γ s² s¹ = CAS' γ s² s¹ (Symbol String)
-type Expression = Expression' Void (Infix String) (Encapsulation String)
-type Pattern = Expression' GapId (Infix String) (Encapsulation String)
+type Expression' γ s² s¹ c = CAS' γ s² s¹ (Symbol c)
+type Expression c = Expression' Void (Infix c) (Encapsulation c) c
+type Pattern c = Expression' GapId (Infix c) (Encapsulation c) c
 
 makeSymbols ''Expression' ['a'..'z']
 

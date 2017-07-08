@@ -22,6 +22,7 @@ import qualified Language.Haskell.TH.Syntax as Hs
 import Data.String (IsString)
 
 data SymbolD σ c = NatSymbol !Integer
+                 | PrimitiveSymbol Char
                  | StringSymbol c
  deriving (Eq)
 
@@ -103,6 +104,7 @@ instance ASCIISymbols String where
 
 showsPrecASCIISymbol :: (Show γ, ASCIISymbols c)
        => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+showsPrecASCIISymbol _ (Symbol (PrimitiveSymbol c)) = (c:)
 showsPrecASCIISymbol _ (Symbol (StringSymbol s)) = (toASCIISymbols s++)
 showsPrecASCIISymbol _ (Symbol (NatSymbol n)) = shows n
 showsPrecASCIISymbol p (Function (Encapsulation l r) s)
@@ -123,6 +125,7 @@ instance UnicodeSymbols String where
 
 showsPrecUnicodeSymbol :: (Show γ, UnicodeSymbols c)
        => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+showsPrecUnicodeSymbol _ (Symbol (PrimitiveSymbol c)) = (c:)
 showsPrecUnicodeSymbol _ (Symbol (StringSymbol s)) = (toUnicodeSymbols s++)
 showsPrecUnicodeSymbol _ (Symbol (NatSymbol n)) = shows n
 showsPrecUnicodeSymbol p (Function (Encapsulation l r) s)
