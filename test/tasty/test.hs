@@ -40,6 +40,10 @@ tests = testGroup "Tests"
       (𝑎*𝑏 - 𝑐*𝑑 &~? ㄖ*ㄈ :=: ㄈ*ㄖ) @?= ([𝑏*𝑎 - 𝑐*𝑑, 𝑎*𝑏 - 𝑑*𝑐] :: [Expr])
      , testCase "Rename local symbols" $
       (map succ%$> 𝑎+𝑝) * 𝑥  @?=  ((𝑏+𝑞) * 𝑥 :: Expr)
+     , testCase "Show 𝑎+𝑏*𝑐" $
+      show (𝑎+𝑏*𝑐 :: Expr) @?= "𝑎+𝑏*𝑐"
+     , testCase "Show (𝑎+𝑏)*𝑐" $
+      show ((𝑎+𝑏)*𝑐 :: Expr) @?= "(𝑎+𝑏)*𝑐"
      ]
   ]
 
