@@ -56,26 +56,8 @@ parenthesise :: IsString s => Encapsulation s
 parenthesise = Encapsulation "(" ")"
       
 symbolInfix :: Infix s² -- ^ The operator we want to describe
-            -> s¹       -- ^ Parenthesization action, in case the operands bind too weakly
   -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰
-symbolInfix infx@(Infix (Hs.Fixity fxty fxdir) _) encaps a b
-               = Operator infx (secureL a) (secureR b)
- where secureL x@(Operator (Infix (Hs.Fixity lfxty _) _) _ _)
-        | lfxty < fxty  = Function encaps x
-       secureL x@(Operator (Infix (Hs.Fixity lfxty Hs.InfixL) _) _ _)
-        | Hs.InfixL <- fxdir
-        , lfxty==fxty   = x
-       secureL x@(Operator (Infix (Hs.Fixity lfxty _) _) _ _)
-        | lfxty==fxty  = Function encaps x
-       secureL x  = x
-       secureR x@(Operator (Infix (Hs.Fixity lfxty _) _) _ _)
-        | lfxty > fxty  = x
-       secureR x@(Operator (Infix (Hs.Fixity lfxty Hs.InfixR) _) _ _)
-        | Hs.InfixR <- fxdir
-        , lfxty==fxty   = x
-       secureR x@(Operator (Infix (Hs.Fixity lfxty _) _) _ _)
-        | lfxty==fxty  = Function encaps x
-       secureR x  = x
+symbolInfix infx@(Infix (Hs.Fixity fxty fxdir) _) a b = Operator infx a b
 
 symbolFunction :: Monoid s¹ => s¹ -> Encapsulation s¹
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
@@ -92,9 +74,9 @@ instance (Monoid c, IsString c)
   fromInteger n
    | n<0        = negate . fromInteger $ -n
    | otherwise  = Symbol $ NatSymbol n
-  (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "+") parenthesise
-  (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) "*") parenthesise
-  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "-") parenthesise
+  (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "+")
+  (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) "*")
+  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "-")
   abs = symbolFunction "abs " parenthesise
   signum = symbolFunction "signum " parenthesise
   negate = symbolFunction "negate " parenthesise
@@ -109,17 +91,55 @@ instance ASCIISymbols String where
   toASCIISymbols = id
 
 
-showsPrecASCIISymbol :: (Show γ, ASCIISymbols c)
+type RenderingCombinator c r = Bool       -- ^ Should the result be parenthesised?
+                            -> Maybe r    -- ^ Left context
+                            -> c          -- ^ Expression to render
+                            -> Maybe r    -- ^ Right context
+                            -> r          -- ^ Rendering result
+
+data ContextFixity = AtLHS Hs.Fixity
+                   | AtRHS Hs.Fixity
+                   | AtFunctionArgument
+                   deriving (Eq)
+
+renderSymbolExpression :: ∀ σ c γ r . (SymbolClass σ, SCConstraint σ c)
+         => ContextFixity -> RenderingCombinator c r
+                    -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> r
+renderSymbolExpression _ ρ (Symbol (PrimitiveSymbol c)) = case fromCharSymbol ([]::[σ]) of
+                              fcs -> ρ False Nothing (fcs c) Nothing
+renderSymbolExpression _ ρ (Symbol (StringSymbol s)) = ρ False Nothing s Nothing
+renderSymbolExpression ctxt ρ (Function (Encapsulation l r) x)
+   = ρ (ctxt==AtFunctionArgument) Nothing l . Just
+      $ ρ False (Just $ renderSymbolExpression AtFunctionArgument ρ x) r Nothing
+renderSymbolExpression ctxt ρ (Operator (Infix fxty o) x y)
+   = ρ parens (Just $ renderSymbolExpression (AtLHS fxty) ρ x)
+              o
+              (Just $ renderSymbolExpression (AtRHS fxty) ρ y)
+ where parens = case ctxt of
+         AtFunctionArgument -> True
+         AtLHS (Hs.Fixity pfxty _)         | Hs.Fixity lfxty _ <- fxty
+                                           , lfxty < pfxty                      -> True
+         AtLHS (Hs.Fixity pfxty Hs.InfixL) | Hs.Fixity lfxty Hs.InfixL <- fxty
+                                           , lfxty==pfxty                       -> False
+         AtLHS (Hs.Fixity pfxty _)         | Hs.Fixity lfxty _ <- fxty
+                                           , lfxty==pfxty                       -> True
+         AtLHS _                                                                -> False
+         AtRHS (Hs.Fixity pfxty _)         | Hs.Fixity lfxty _ <- fxty
+                                           , lfxty < pfxty                      -> True
+         AtRHS (Hs.Fixity pfxty Hs.InfixR) | Hs.Fixity lfxty Hs.InfixR <- fxty
+                                           , lfxty==pfxty                       -> False
+         AtRHS (Hs.Fixity pfxty _)         | Hs.Fixity lfxty _ <- fxty
+                                           , lfxty==pfxty                       -> True
+         AtRHS _                                                                -> False
+
+
+showsPrecASCIISymbol :: (Show γ, ASCIISymbols c, SymbolClass σ, SCConstraint σ c)
        => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
-showsPrecASCIISymbol _ (Symbol (PrimitiveSymbol c)) = (c:)
-showsPrecASCIISymbol _ (Symbol (StringSymbol s)) = (toASCIISymbols s++)
-showsPrecASCIISymbol _ (Symbol (NatSymbol n)) = shows n
-showsPrecASCIISymbol p (Function (Encapsulation l r) s)
-    = showParen (p>9) $ (toASCIISymbols l++) . showsPrecASCIISymbol 0 s . (toASCIISymbols r++)
-showsPrecASCIISymbol p (Operator (Infix (Hs.Fixity fxty _) fx) a b)
-    = showParen (p>=fxty) $ showsPrecASCIISymbol 0 a . (toASCIISymbols fx++) . showsPrecASCIISymbol 0 b
-showsPrecASCIISymbol p (Gap γ)
-    = showParen (p>9) $ ("Gap "++) . showsPrec 10 γ
+showsPrecASCIISymbol ctxt
+      = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
+ where ρ dop lctxt sym rctxt
+           = showParen dop $ maybe id id lctxt . (toASCIISymbols sym++) . maybe id id rctxt
+
 
 class UnicodeSymbols c where
   fromUnicodeSymbol :: Char -> c
@@ -130,17 +150,12 @@ instance UnicodeSymbols String where
   toUnicodeSymbols = id
 
 
-showsPrecUnicodeSymbol :: (Show γ, UnicodeSymbols c)
+showsPrecUnicodeSymbol :: (Show γ, UnicodeSymbols c, SymbolClass σ, SCConstraint σ c)
        => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
-showsPrecUnicodeSymbol _ (Symbol (PrimitiveSymbol c)) = (c:)
-showsPrecUnicodeSymbol _ (Symbol (StringSymbol s)) = (toUnicodeSymbols s++)
-showsPrecUnicodeSymbol _ (Symbol (NatSymbol n)) = shows n
-showsPrecUnicodeSymbol p (Function (Encapsulation l r) s)
-    = showParen (p>9) $ (toUnicodeSymbols l++) . showsPrecUnicodeSymbol 0 s . (toUnicodeSymbols r++)
-showsPrecUnicodeSymbol p (Operator (Infix (Hs.Fixity fxty _) fx) a b)
-    = showParen (p>=fxty) $ showsPrecUnicodeSymbol 0 a . (toUnicodeSymbols fx++) . showsPrecUnicodeSymbol 0 b
-showsPrecUnicodeSymbol p (Gap γ)
-    = showParen (p>9) $ ("Gap "++) . showsPrec 10 γ
+showsPrecUnicodeSymbol ctxt
+      = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
+ where ρ dop lctxt sym rctxt
+           = showParen dop $ maybe id id lctxt . (toUnicodeSymbols sym++) . maybe id id rctxt
 
 
 
