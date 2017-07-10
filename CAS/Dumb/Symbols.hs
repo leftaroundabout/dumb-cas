@@ -98,9 +98,9 @@ data ContextFixity = AtLHS Hs.Fixity
                    | AtFunctionArgument
                    deriving (Eq)
 
-renderSymbolExpression :: ∀ σ c γ r . (SymbolClass σ, SCConstraint σ c)
+renderSymbolExpression :: ∀ σ c r . (SymbolClass σ, SCConstraint σ c)
          => ContextFixity -> RenderingCombinator σ c r
-                    -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> r
+                    -> CAS (Infix c) (Encapsulation c) (SymbolD σ c) -> r
 renderSymbolExpression _ ρ (Symbol s) = ρ False Nothing s Nothing
 renderSymbolExpression ctxt ρ (Function (Encapsulation l r) x)
    = ρ (ctxt==AtFunctionArgument) Nothing (StringSymbol l) . Just
@@ -128,8 +128,8 @@ renderSymbolExpression ctxt ρ (Operator (Infix fxty o) x y)
          AtRHS _                                                                -> False
 
 
-showsPrecASCIISymbol :: (Show γ, ASCIISymbols c, SymbolClass σ, SCConstraint σ c)
-       => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+showsPrecASCIISymbol :: (ASCIISymbols c, SymbolClass σ, SCConstraint σ c)
+       => Int -> CAS (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
 showsPrecASCIISymbol ctxt
       = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
  where ρ dop lctxt (StringSymbol sym) rctxt
@@ -149,8 +149,8 @@ instance UnicodeSymbols String where
   toUnicodeSymbols = id
 
 
-showsPrecUnicodeSymbol :: (Show γ, UnicodeSymbols c, SymbolClass σ, SCConstraint σ c)
-       => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+showsPrecUnicodeSymbol :: (UnicodeSymbols c, SymbolClass σ, SCConstraint σ c)
+       => Int -> CAS (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
 showsPrecUnicodeSymbol ctxt
       = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
  where ρ dop lctxt (StringSymbol sym) rctxt
