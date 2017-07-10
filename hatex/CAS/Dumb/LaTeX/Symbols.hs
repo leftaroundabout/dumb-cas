@@ -37,8 +37,10 @@ instance ASCIISymbols LaTeX where
 instance UnicodeSymbols LaTeX where
   fromUnicodeSymbol c
    | Just lc <- Map.lookup c mappingFromUnicode  = lc
+   | otherwise  = error $ "Unicode symbol '"++[c]++"' not supported in LaTeX expressions."
   toUnicodeSymbols lc
    | Just c <- Map.lookup lc mappingToUnicode    = [c]
+   | otherwise  = "{{{"++Txt.unpack(render lc)++"}}}"
   
 mappingFromUnicode :: Map.HashMap Char LaTeX
 mappingToUnicode :: Map.HashMap LaTeX Char
