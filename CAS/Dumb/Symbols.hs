@@ -59,15 +59,10 @@ symbolInfix :: Infix s² -- ^ The operator we want to describe
   -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰
 symbolInfix infx@(Infix (Hs.Fixity fxty fxdir) _) a b = Operator infx a b
 
-symbolFunction :: Monoid s¹ => s¹ -> Encapsulation s¹
+symbolFunction :: Monoid s¹ => s¹
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
-symbolFunction f (Encapsulation l r) a@(Symbol _)
-    = Function (Encapsulation f mempty) a
-symbolFunction f (Encapsulation l r) a@(Gap _)
-    = Function (Encapsulation f mempty) a
-symbolFunction f (Encapsulation l r) a
-    = Function (Encapsulation (f<>l) r) a
+symbolFunction f a = Function (Encapsulation f mempty) a
 
 instance (Monoid c, IsString c)
           => Num (CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)) where
@@ -77,9 +72,9 @@ instance (Monoid c, IsString c)
   (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "+")
   (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) "*")
   (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "-")
-  abs = symbolFunction "abs " parenthesise
-  signum = symbolFunction "signum " parenthesise
-  negate = symbolFunction "negate " parenthesise
+  abs = symbolFunction "abs "
+  signum = symbolFunction "signum "
+  negate = symbolFunction "negate "
 
 
 class ASCIISymbols c where
