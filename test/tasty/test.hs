@@ -46,6 +46,8 @@ tests = testGroup "Tests"
       show ((𝑎+𝑏)*𝑐 :: Expr) @?= "(𝑎+𝑏)*𝑐"
      , testCase "Show abs (𝑎+𝑏)" $
       show (abs (𝑎+𝑏) :: Expr) @?= "abs (𝑎+𝑏)"
+     , testCase "Show abs 3" $
+      show (abs 3 :: Expr) @?= "abs 3"
      ]
   ]
 

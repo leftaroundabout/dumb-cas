@@ -86,11 +86,12 @@ instance ASCIISymbols String where
   toASCIISymbols = id
 
 
-type RenderingCombinator c r = Bool       -- ^ Should the result be parenthesised?
-                            -> Maybe r    -- ^ Left context
-                            -> c          -- ^ Expression to render
-                            -> Maybe r    -- ^ Right context
-                            -> r          -- ^ Rendering result
+type RenderingCombinator σ c r
+        = Bool        -- ^ Should the result be parenthesised?
+       -> Maybe r     -- ^ Left context
+       -> SymbolD σ c -- ^ Central expression/function/infix to render
+       -> Maybe r     -- ^ Right context
+       -> r           -- ^ Rendering result
 
 data ContextFixity = AtLHS Hs.Fixity
                    | AtRHS Hs.Fixity
@@ -98,17 +99,16 @@ data ContextFixity = AtLHS Hs.Fixity
                    deriving (Eq)
 
 renderSymbolExpression :: ∀ σ c γ r . (SymbolClass σ, SCConstraint σ c)
-         => ContextFixity -> RenderingCombinator c r
+         => ContextFixity -> RenderingCombinator σ c r
                     -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> r
-renderSymbolExpression _ ρ (Symbol (PrimitiveSymbol c)) = case fromCharSymbol ([]::[σ]) of
-                              fcs -> ρ False Nothing (fcs c) Nothing
-renderSymbolExpression _ ρ (Symbol (StringSymbol s)) = ρ False Nothing s Nothing
+renderSymbolExpression _ ρ (Symbol s) = ρ False Nothing s Nothing
 renderSymbolExpression ctxt ρ (Function (Encapsulation l r) x)
-   = ρ (ctxt==AtFunctionArgument) Nothing l . Just
-      $ ρ False (Just $ renderSymbolExpression AtFunctionArgument ρ x) r Nothing
+   = ρ (ctxt==AtFunctionArgument) Nothing (StringSymbol l) . Just
+      $ ρ False (Just $ renderSymbolExpression AtFunctionArgument ρ x)
+                (StringSymbol r) Nothing
 renderSymbolExpression ctxt ρ (Operator (Infix fxty o) x y)
    = ρ parens (Just $ renderSymbolExpression (AtLHS fxty) ρ x)
-              o
+              (StringSymbol o)
               (Just $ renderSymbolExpression (AtRHS fxty) ρ y)
  where parens = case ctxt of
          AtFunctionArgument -> True
@@ -132,8 +132,12 @@ showsPrecASCIISymbol :: (Show γ, ASCIISymbols c, SymbolClass σ, SCConstraint �
        => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
 showsPrecASCIISymbol ctxt
       = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
- where ρ dop lctxt sym rctxt
+ where ρ dop lctxt (StringSymbol sym) rctxt
            = showParen dop $ maybe id id lctxt . (toASCIISymbols sym++) . maybe id id rctxt
+       ρ dop lctxt (NatSymbol n) rctxt
+           = showParen dop $ maybe id id lctxt . shows n . maybe id id rctxt
+       ρ dop lctxt (PrimitiveSymbol c) rctxt
+           = showParen dop $ maybe id id lctxt . (c:) . maybe id id rctxt
 
 
 class UnicodeSymbols c where
@@ -149,8 +153,12 @@ showsPrecUnicodeSymbol :: (Show γ, UnicodeSymbols c, SymbolClass σ, SCConstrai
        => Int -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
 showsPrecUnicodeSymbol ctxt
       = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
- where ρ dop lctxt sym rctxt
+ where ρ dop lctxt (StringSymbol sym) rctxt
            = showParen dop $ maybe id id lctxt . (toUnicodeSymbols sym++) . maybe id id rctxt
+       ρ dop lctxt (NatSymbol n) rctxt
+           = showParen dop $ maybe id id lctxt . shows n . maybe id id rctxt
+       ρ dop lctxt (PrimitiveSymbol c) rctxt
+           = showParen dop $ maybe id id lctxt . (c:) . maybe id id rctxt
 
 
 
