@@ -50,6 +50,10 @@ tests = testGroup "Tests"
       show (abs (𝑎+𝑏) :: Expr) @?= "abs (𝑎+𝑏)"
      , testCase "abs 3" $
       show (abs 3 :: Expr) @?= "abs 3"
+     , testCase "𝑎 + -3" $
+      show (𝑎+(-3) :: Expr) @?= "𝑎+( -3)"
+     , testCase "𝑎 / signum π" $
+      show (𝑎/signum π :: Expr) @?= "𝑎/signum π"
      ]
   ]
 

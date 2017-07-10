@@ -30,6 +30,8 @@ import Data.String (IsString(..))
 import Data.Char (isAlpha, isUpper, isLower)
 import Data.Tuple (swap)
 
+import Data.Ratio (denominator, numerator)
+
 import qualified Data.HashMap.Strict as Map
 import Data.Hashable
 
@@ -91,6 +93,10 @@ infixl 3 <|>
 InvertibleMap af ar<|>InvertibleMap bf br
    = InvertibleMap (Map.union af bf) (Map.union ar br)
 
+encapsulation :: l -> l
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+encapsulation l r = Function $ Encapsulation False True l r
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
           => Num (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
@@ -103,6 +109,20 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
    where fcs = fromCharSymbol ([]::[σ])
   (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
    where fcs = fromCharSymbol ([]::[σ])
-  abs = Function $ Encapsulation (raw "\\left|") (raw "\\right|")
+  abs = encapsulation (raw "\\left|") (raw "\\right|")
   signum = symbolFunction $ signum""
-  negate = symbolFunction $ negate""
+  negate = Operator (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
+             . Symbol $ StringSymbol mempty
+   where fcs = fromCharSymbol ([]::[σ])
+
+instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
+     => Fractional (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
+  fromRational n
+   | n < 0                        = negate . fromRational $ -n
+   | denominator n `mod` 10 == 0  = undefined
+   | otherwise                    = fromInteger (numerator n)
+                                    / fromInteger (denominator n)
+  a / b = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
+             (encapsulation (raw "\\frac{") (raw "}") a)
+             (encapsulation (raw       "{") (raw "}") b)
+

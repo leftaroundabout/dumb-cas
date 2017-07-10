@@ -28,6 +28,8 @@ import Data.String (IsString)
 
 import GHC.Exts (Constraint)
 
+import Data.Ratio (denominator, numerator)
+
 
 data SymbolD σ c = NatSymbol !Integer
                  | PrimitiveSymbol Char
@@ -85,7 +87,19 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
    where fcs = fromCharSymbol ([]::[σ])
   abs = symbolFunction "abs "
   signum = symbolFunction "signum "
-  negate = symbolFunction "negate "
+  negate = Operator (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
+             . Symbol $ StringSymbol " "
+   where fcs = fromCharSymbol ([]::[σ])
+
+instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
+          => Fractional (CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String)) where
+  fromRational n
+   | n < 0                        = negate . fromRational $ -n
+   | denominator n `mod` 10 == 0  = undefined
+   | otherwise                    = fromInteger (numerator n)
+                                    / fromInteger (denominator n)
+  (/) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '/')
+   where fcs = fromCharSymbol ([]::[σ])
 
 
 class ASCIISymbols c where
