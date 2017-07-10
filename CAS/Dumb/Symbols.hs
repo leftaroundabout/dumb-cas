@@ -42,18 +42,26 @@ instance Eq s => Eq (Infix s) where
   Infix _ o == Infix _ p = o==p
 
 data Encapsulation s = Encapsulation {
-      leftEncaps, rightEncaps :: !s }
+      needInnerParens, haveOuterparens :: !Bool
+    , leftEncaps, rightEncaps :: !s
+    }
 
 instance Eq (Encapsulation String) where
-  Encapsulation l r == Encapsulation l' r'
+  Encapsulation _ _ l r == Encapsulation _ _ l' r'
          = dropParens (reverse l) r == dropParens (reverse l') r'
    where dropParens ('(':lr) (')':rr) = dropParens lr rr
          dropParens (' ':lr) rr = dropParens lr rr
          dropParens lr (' ':rr) = dropParens lr rr
          dropParens lr rr = (lr,rr)
 
-parenthesise :: IsString s => Encapsulation s
-parenthesise = Encapsulation "(" ")"
+don'tParenthesise :: Monoid s¹
+                  => CAS' γ (Infix s²) (Encapsulation s¹) s⁰
+                  -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
+don'tParenthesise (Symbol s) = Symbol s
+don'tParenthesise (Gap γ) = Gap γ
+don'tParenthesise (Function (Encapsulation nin _ l r) x)
+        = Function (Encapsulation nin True l r) x
+don'tParenthesise x = Function (Encapsulation False True mempty mempty) x
       
 symbolInfix :: Infix s² -- ^ The operator we want to describe
   -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰
@@ -62,7 +70,7 @@ symbolInfix infx@(Infix (Hs.Fixity fxty fxdir) _) a b = Operator infx a b
 symbolFunction :: Monoid s¹ => s¹
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
-symbolFunction f a = Function (Encapsulation f mempty) a
+symbolFunction f a = Function (Encapsulation True False f mempty) a
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
           => Num (CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String)) where
@@ -105,9 +113,12 @@ renderSymbolExpression :: ∀ σ c r . (SymbolClass σ, SCConstraint σ c)
          => ContextFixity -> RenderingCombinator σ c r
                     -> CAS (Infix c) (Encapsulation c) (SymbolD σ c) -> r
 renderSymbolExpression _ ρ (Symbol s) = ρ False Nothing s Nothing
-renderSymbolExpression ctxt ρ (Function (Encapsulation l r) x)
-   = ρ (ctxt==AtFunctionArgument) Nothing (StringSymbol l) . Just
-      $ ρ False (Just $ renderSymbolExpression AtFunctionArgument ρ x)
+renderSymbolExpression ctxt ρ (Function (Encapsulation needInnerP atomical l r) x)
+   = ρ (not atomical && ctxt==AtFunctionArgument) Nothing (StringSymbol l) . Just
+      $ ρ False (Just $ renderSymbolExpression
+                          (if needInnerP then AtFunctionArgument
+                                         else AtLHS (Hs.Fixity 0 Hs.InfixN))
+                          ρ x)
                 (StringSymbol r) Nothing
 renderSymbolExpression ctxt ρ (Operator (Infix fxty o) x y)
    = ρ parens (Just $ renderSymbolExpression (AtLHS fxty) ρ x)
