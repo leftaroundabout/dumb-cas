@@ -22,6 +22,7 @@ import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 
 import Text.LaTeX
+import Text.LaTeX.Base.Class
 import Text.LaTeX.Base.Syntax
 import Text.LaTeX.Packages.AMSMath
 
@@ -98,6 +99,12 @@ encapsulation :: l -> l
               -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
 encapsulation l r = Function $ Encapsulation False True l r
 
+latexFunction :: LaTeXC l
+              => Text
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+              -> (CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l))
+latexFunction f = Function $ Encapsulation True False (raw $ f<>"{") (raw "}")
+
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
           => Num (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
   fromInteger n
@@ -110,7 +117,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
    where fcs = fromCharSymbol ([]::[σ])
   abs = encapsulation (raw "\\left|") (raw "\\right|")
-  signum = symbolFunction $ signum""
+  signum = latexFunction "\\signum"
   negate = Operator (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
              . Symbol $ StringSymbol mempty
    where fcs = fromCharSymbol ([]::[σ])
@@ -125,4 +132,28 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
   a / b = Operator (Infix (Hs.Fixity 8 Hs.InfixL) mempty)
              (encapsulation (raw "\\frac{") (raw "}") a)
              (encapsulation (raw       "{") (raw "}") b)
+
+
+instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
+     => Floating (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
+  pi = Symbol $ StringSymbol pi_
+  sqrt = encapsulation (raw "\\sqrt{") (raw "}")
+  a ** b = Operator (Infix (Hs.Fixity 8 Hs.InfixR) mempty)
+             a (encapsulation (raw "^{") (raw "}") b)
+  logBase b a = Operator (Infix (Hs.Fixity 10 Hs.InfixL) mempty)
+                  (encapsulation (raw "\\log_{") (raw "}") b) a
+  exp = latexFunction "\\exp"
+  log = latexFunction "\\log"
+  sin = latexFunction "\\sin"
+  cos = latexFunction "\\cos"
+  tan = latexFunction "\\tan"
+  asin = latexFunction "\\asin"
+  acos = latexFunction "\\acos"
+  atan = latexFunction "\\atan"
+  sinh = latexFunction "\\sinh"
+  cosh = latexFunction "\\cosh"
+  tanh = latexFunction "\\tanh"
+  asinh = latexFunction "\\asinh"
+  acosh = latexFunction "\\acosh"
+  atanh = latexFunction "\\atanh"
 

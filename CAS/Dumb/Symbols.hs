@@ -101,6 +101,25 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
   (/) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '/')
    where fcs = fromCharSymbol ([]::[σ])
 
+instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
+          => Floating (CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String)) where
+  pi = Symbol $ StringSymbol "pi"
+  (**) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "**")
+  logBase = symbolInfix (Infix (Hs.Fixity 10 Hs.InfixL) "`logBase`")
+  exp = symbolFunction $ "exp "
+  log = symbolFunction $ "log "
+  sin = symbolFunction $ "sin "
+  cos = symbolFunction $ "cos "
+  tan = symbolFunction $ "tan "
+  asin = symbolFunction $ "asin "
+  acos = symbolFunction $ "acos "
+  atan = symbolFunction $ "atan "
+  sinh = symbolFunction $ "sinh "
+  cosh = symbolFunction $ "cosh "
+  tanh = symbolFunction $ "tanh "
+  asinh = symbolFunction $ "asinh "
+  acosh = symbolFunction $ "acosh "
+  atanh = symbolFunction $ "atanh "
 
 class ASCIISymbols c where
   fromASCIISymbol :: Char -> c
