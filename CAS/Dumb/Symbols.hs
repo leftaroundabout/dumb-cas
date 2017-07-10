@@ -64,14 +64,17 @@ symbolFunction :: Monoid s¹ => s¹
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
 symbolFunction f a = Function (Encapsulation f mempty) a
 
-instance (Monoid c, IsString c)
-          => Num (CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)) where
+instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
+          => Num (CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String)) where
   fromInteger n
    | n<0        = negate . fromInteger $ -n
    | otherwise  = Symbol $ NatSymbol n
-  (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "+")
-  (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) "*")
-  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "-")
+  (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '+')
+   where fcs = fromCharSymbol ([]::[σ])
+  (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*')
+   where fcs = fromCharSymbol ([]::[σ])
+  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
+   where fcs = fromCharSymbol ([]::[σ])
   abs = symbolFunction "abs "
   signum = symbolFunction "signum "
   negate = symbolFunction "negate "

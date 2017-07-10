@@ -10,8 +10,15 @@
 -- Orphan instances, allowing to construct CAS syntax trees
 -- with LaTeX symbols.
 
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE UnicodeSyntax        #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 module CAS.Dumb.LaTeX.Symbols () where
 
+import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 
 import Text.LaTeX
@@ -27,6 +34,8 @@ import qualified Data.HashMap.Strict as Map
 import Data.Hashable
 
 import Control.Monad
+
+import qualified Language.Haskell.TH as Hs
 
 
 instance ASCIISymbols LaTeX where
@@ -55,6 +64,9 @@ InvertibleMap mappingFromUnicode mappingToUnicode
  <|> fromAssocList (zip
            ['μ','ν','ξ','π','ρ','ϱ',   'σ',  'ς',     'τ','υ',    'ϕ','φ',   'χ','ψ', 'ω' ]
            [mu, nu, xi, pi, rho,varrho,sigma,varsigma,tau,upsilon,phi,varphi,chi,psi,omega])
+ <|> fromAssocList (zip
+           ['+', '-', '*',           '±',         '∓'        ]
+           ["+", "-", raw"{\\cdot}", raw"{\\pm}", raw"{\\mp}"])
 
 remapWith :: (a->b) -> [a] -> [a] -> [(a, b)]
 remapWith f = zipWith (\lc rc -> (lc, f rc))
@@ -79,3 +91,18 @@ infixl 3 <|>
 InvertibleMap af ar<|>InvertibleMap bf br
    = InvertibleMap (Map.union af bf) (Map.union ar br)
 
+
+instance ∀ σ γ . (SymbolClass σ, SCConstraint σ LaTeX)
+          => Num (CAS' γ (Infix LaTeX) (Encapsulation LaTeX) (SymbolD σ LaTeX)) where
+  fromInteger n
+   | n<0        = negate . fromInteger $ -n
+   | otherwise  = Symbol $ NatSymbol n
+  (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '+')
+   where fcs = fromCharSymbol ([]::[σ])
+  (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*')
+   where fcs = fromCharSymbol ([]::[σ])
+  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
+   where fcs = fromCharSymbol ([]::[σ])
+  abs = Function $ Encapsulation (raw "\\left|") (raw "\\right|")
+  signum = symbolFunction $ signum""
+  negate = symbolFunction $ negate""
