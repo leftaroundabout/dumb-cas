@@ -14,7 +14,7 @@ module CAS.Dumb (
              -- * Symbolic manipulation
                (&~:), (&~?)
              -- * Constructing equality axioms
-             , pattern (:=:)
+             , Equality'((:=:))
              -- * Variable-symbols
              , (%$>)
              , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
