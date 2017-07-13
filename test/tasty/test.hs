@@ -42,7 +42,11 @@ tests = testGroup "Tests"
       (map succ%$> 𝑎+𝑝) * 𝑥  @?=  ((𝑏+𝑞) * 𝑥 :: Expr)
      ]
   , testGroup "Show instance"
-     [ testCase "𝑎+𝑏*𝑐" $
+     [ testCase "𝑎+𝑏+𝑐" $
+      show (𝑎+𝑏+𝑐 :: Expr) @?= "𝑎+𝑏+𝑐"
+     , testCase "𝑎+(𝑏+𝑐)" $
+      show (𝑎+(𝑏+𝑐) :: Expr) @?= "𝑎+(𝑏+𝑐)"
+     , testCase "𝑎+𝑏*𝑐" $
       show (𝑎+𝑏*𝑐 :: Expr) @?= "𝑎+𝑏*𝑐"
      , testCase "(𝑎+𝑏)*𝑐" $
       show ((𝑎+𝑏)*𝑐 :: Expr) @?= "(𝑎+𝑏)*𝑐"

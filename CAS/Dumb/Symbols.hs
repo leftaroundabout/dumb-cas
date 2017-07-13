@@ -65,9 +65,9 @@ don'tParenthesise (Function (Encapsulation nin _ l r) x)
         = Function (Encapsulation nin True l r) x
 don'tParenthesise x = Function (Encapsulation False True mempty mempty) x
       
-symbolInfix :: Infix s² -- ^ The operator we want to describe
-  -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰ -> CAS' γ (Infix s²) s¹ s⁰
-symbolInfix infx@(Infix (Hs.Fixity fxty fxdir) _) a b = Operator infx a b
+symbolInfix :: s² -- ^ The operator we want to describe
+  -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
+symbolInfix = Operator
 
 symbolFunction :: Monoid s¹ => s¹
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
@@ -79,10 +79,12 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
   fromInteger n
    | n<0        = negate . fromInteger $ -n
    | otherwise  = Symbol $ NatSymbol n
-  (+) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '+')
+  (+) = chainableInfixL (==plusOp) plusOp
    where fcs = fromCharSymbol ([]::[σ])
-  (*) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*')
+         plusOp = Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '+'
+  (*) = chainableInfixL (==mulOp) mulOp
    where fcs = fromCharSymbol ([]::[σ])
+         mulOp = Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*'
   (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
    where fcs = fromCharSymbol ([]::[σ])
   abs = symbolFunction "abs "
@@ -153,11 +155,20 @@ renderSymbolExpression ctxt ρ (Function (Encapsulation needInnerP atomical l r)
                                          else AtLHS (Hs.Fixity 0 Hs.InfixN))
                           ρ x)
                 (StringSymbol r) Nothing
-renderSymbolExpression ctxt ρ (Operator (Infix fxty o) x y)
-   = ρ parens (Just $ renderSymbolExpression (AtLHS fxty) ρ x)
-              (StringSymbol o)
-              (Just $ renderSymbolExpression (AtRHS fxty) ρ y)
- where parens = case ctxt of
+renderSymbolExpression ctxt ρ (OperatorChain x ys@(_:_)) = go parens x ys
+ where fxty = foldr1 ( \f f' -> if f==f'
+                  then f
+                  else error "All infixes in an OperatorChain must have the same fixity"
+                     ) $ symbolFixity . fst <$> ys
+       go parens x [(Infix _ o,y)]
+             = ρ parens (Just $ renderSymbolExpression (AtLHS fxty) ρ x)
+                        (StringSymbol o)
+                        (Just $ renderSymbolExpression (AtRHS fxty) ρ y)
+       go parens x ((Infix _ o,y):zs)
+             = ρ parens (Just $ go False x zs)
+                        (StringSymbol o)
+                        (Just $ renderSymbolExpression (AtRHS fxty) ρ y)
+       parens = case ctxt of
          AtFunctionArgument -> True
          AtLHS (Hs.Fixity pfxty _)         | Hs.Fixity lfxty _ <- fxty
                                            , lfxty < pfxty                      -> True

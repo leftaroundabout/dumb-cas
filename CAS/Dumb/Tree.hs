@@ -42,6 +42,31 @@ data CAS' γ s² s¹ s⁰ = Symbol !s⁰
 pattern Operator :: s² -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
 pattern Operator o x y = OperatorChain x [(o,y)]
 
+
+chainableInfixL, chainableInfixR, chainableInfix
+               :: (s² -> Bool)  -- ^ Condition that all operators in the chain
+                                --   must fulfill to be joined by this one
+               -> s²            -- ^ The operator we want to add
+               -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
+               -> CAS' γ s² s¹ s⁰
+chainableInfixL ppred infx (OperatorChain x ys) z
+ | all (ppred . fst) ys  = OperatorChain x $ (infx,z):ys
+chainableInfixL _ infx a b = Operator infx a b
+
+chainableInfixR ppred infx (OperatorChain x ys) z
+ | all (ppred . fst) ys  = OperatorChain x $ (infx,z):ys
+chainableInfixR ppred infx x (OperatorChain y zs)
+ | all (ppred . fst) zs  = OperatorChain x $ zs++[(infx,y)]
+chainableInfixR _ infx a b = Operator infx a b
+
+chainableInfix ppred infx (OperatorChain x ys) z
+ | all (ppred . fst) ys  = OperatorChain x $ (infx,z):ys
+chainableInfix ppred infx x (OperatorChain y zs)
+ | all (ppred . fst) zs  = OperatorChain x $ zs++[(infx,y)]
+chainableInfix _ infx a b = Operator infx a b
+
+
+
 type CAS = CAS' Void
 
 instance (SH.Hashable γ, SH.Hashable s⁰, SH.Hashable s¹, SH.Hashable s²)
