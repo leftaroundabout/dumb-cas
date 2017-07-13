@@ -112,6 +112,28 @@ infixl 1 &~:, &~?
 -- For example, <http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathLatin_RomanGreek__BopomofoGaps.html#v:-119886- 𝑎>·<http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathLatin_RomanGreek__BopomofoGaps.html#v:-119887- 𝑏> − <http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathLatin_RomanGreek__BopomofoGaps.html#v:-119888- 𝑐>·<http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathLatin_RomanGreek__BopomofoGaps.html#v:-119889- 𝑑> '&~:' <http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathLatin_RomanGreek__BopomofoGaps.html#v:-12549- ㄅ>·<http://hackage.haskell.org/package/dumb-cas/docs/CAS-Dumb-Symbols-Unicode-MathLatin_RomanGreek__BopomofoGaps.html#v:-12568- ㄘ> ':=:' ㄘ·ㄅ yields 𝑏·𝑎 − 𝑑·𝑐.
 (&~:) :: (Eq s⁰, Eq s¹, Eq s²) => CAS s² s¹ s⁰ -> Eqspattern s² s¹ s⁰ -> CAS s² s¹ s⁰
 e &~: orig := (alt:=_):_ = e &~: orig:=:alt
+OperatorChain x ys &~: pat@(OperatorChain ξ υs):=:alt
+  | exprLength > patLength
+  , (remainSect, patLSect) <- splitAt (exprLength-patLength) ys
+    = let (or₀, yr₀) = last remainSect
+      in case matchPattern pat (OperatorChain x patLSect) of
+       Just varMatchesL -> case ( fillGaps varMatchesL alt
+                                , OperatorChain yr₀ (init remainSect) &~: pat:=:alt ) of
+          (Just (OperatorChain x' yps'), OperatorChain yr₀' zs')
+           | all ((==or₀) . fst) yps'
+           , all ((==or₀) . fst) zs'
+             -> OperatorChain x' $ zs'++(or₀,yr₀'):yps'
+          (Just patReplaced, OperatorChain yr₀' zs')
+           | all ((==or₀) . fst) zs'
+             -> OperatorChain patReplaced $ zs'++[(or₀,yr₀')]
+       Nothing -> let (o₀,y₀) = last ys
+                  in case OperatorChain y₀ (init ys) &~: pat:=:alt of
+          OperatorChain y₀' yps'
+           | all ((==o₀) . fst) yps'
+               -> OperatorChain x $ yps'++[(o₀,y₀')]
+          patReplaced -> OperatorChain x [(o₀,patReplaced)]
+ where patLength = length υs
+       exprLength = length ys
 e &~: orig:=:alt
   | Just varMatches <- matchPattern orig e
       = case fillGaps varMatches alt of
