@@ -161,9 +161,22 @@ Function f x &~? p = Function f <$> (x&~?p)
 Operator o x y &~? p = (flip (Operator o) y <$> (x&~?p))
                     ++ (      Operator o  x <$> (y&~?p))
 OperatorChain x [] &~? p = (`OperatorChain`[]) <$> (x&~?p)
-OperatorChain x ((o,y):zs) &~? p
-       = [OperatorChain ξ ((o,y):ζs) | OperatorChain ξ ζs <- OperatorChain x zs &~? p]
-        ++ (OperatorChain x . (:zs) . (o,) <$> (y&~?p))
+OperatorChain x ((o,y):zs) &~? p@(orig:=:alt)
+       = [ OperatorChain ξ ((o,y):ζs)
+         | OperatorChain ξ ζs <- OperatorChain x zs &~? p ]
+      ++ rSectMatched
+      ++ (OperatorChain x . (:zs) . (o,) <$> (y&~?p))
+ where rSectMatched
+        | OperatorChain ξ υs <- orig
+        , patLength <- length υs
+        , exprLength > patLength
+        , (patRSect, (o₁,z₁):remainSect) <- splitAt (patLength-1) $ zs
+        , Just varMatches <- matchPattern orig $ OperatorChain z₁ ((o,y):patRSect)
+           = case fillGaps varMatches alt of
+               Just refilled -> [associativeOperator o₁
+                                  (OperatorChain x remainSect) refilled]
+        | otherwise  = []
+       exprLength = length zs + 1
 e &~? _ = []
 
 fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (Expattern s² s¹ s⁰) -> Maybe (CAS s² s¹ s⁰)
