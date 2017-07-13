@@ -8,7 +8,10 @@
 -- Portability : portable
 -- 
 
-{-# LANGUAGE DeriveFunctor, DeriveGeneric #-}
+{-# LANGUAGE DeriveFunctor, DeriveGeneric       #-}
+{-# LANGUAGE TupleSections                      #-}
+{-# LANGUAGE PatternSynonyms                    #-}
+{-# LANGUAGE ScopedTypeVariables, UnicodeSyntax #-}
 
 module CAS.Dumb.Tree where
 
@@ -21,15 +24,23 @@ import Data.Map (Map)
 
 import Data.Void
 import Control.Monad
+import Control.Arrow
 
 import GHC.Generics
 
 
 data CAS' γ s² s¹ s⁰ = Symbol !s⁰
                      | Function !s¹ (CAS' γ s² s¹ s⁰)
-                     | Operator !s² (CAS' γ s² s¹ s⁰) (CAS' γ s² s¹ s⁰)
+                     | OperatorChain
+                          (CAS' γ s² s¹ s⁰)       -- Initial operand
+                          [(s², CAS' γ s² s¹ s⁰)] -- Chain of operator-application, in
+                                                  -- reverse order (i.e. the head of this
+                                                  -- list contains the rightmost operand)
                      | Gap !γ
   deriving (Functor, Eq, Generic)
+
+pattern Operator :: s² -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
+pattern Operator o x y = OperatorChain x [(o,y)]
 
 type CAS = CAS' Void
 
@@ -49,18 +60,24 @@ type GapId = Int
 type Expattern s² s¹ s⁰ = CAS' GapId s² s¹ s⁰
 type Eqspattern s² s¹ s⁰ = Equality' GapId s² s¹ s⁰
 
-matchPattern :: (Eq s⁰, Eq s¹, Eq s²)
+matchPattern :: ∀ s⁰ s¹ s² . (Eq s⁰, Eq s¹, Eq s²)
          => Expattern s² s¹ s⁰ -> CAS s² s¹ s⁰ -> Maybe (Map GapId (CAS s² s¹ s⁰))
 matchPattern (Gap i) e = Just $ Map.singleton i e
 matchPattern (Symbol s) (Symbol s')
  | s==s'  = Just Map.empty
 matchPattern (Function f x) (Function f' ξ)
  | f==f'  = matchPattern x ξ
-matchPattern (Operator o x y) (Operator o' ξ υ)
- | o==o'  = do
+matchPattern (OperatorChain x zs) (OperatorChain ξ ζs)
+ | (fst<$>zs) == (fst<$>ζs)  = do
      xmatches <- matchPattern x ξ
-     ymatches <- matchPattern y υ
-     traverseUnionConflicts (\v w -> guard (v==w) >> Just v) xmatches ymatches
+     zsmatches <- sequence $ zipWith matchPattern (snd<$>zs) (snd<$>ζs)
+     merge xmatches zsmatches
+ where merge :: Map GapId (CAS s² s¹ s⁰) -> [Map GapId (CAS s² s¹ s⁰)]
+                   -> Maybe (Map GapId (CAS s² s¹ s⁰))
+       merge acc [] = pure acc
+       merge acc (xm:ms)
+          = traverseUnionConflicts (\v w -> guard (v==w) >> Just v) xm acc
+             >>= (`merge` ms)
 matchPattern _ _ = Nothing
 
 infixl 1 &~:, &~?
@@ -75,7 +92,7 @@ e &~: orig:=:alt
       = case fillGaps varMatches alt of
           Just refilled -> refilled
 Function f x &~: p = Function f $ x&~:p
-Operator o x y &~: p = Operator o (x&~:p) (y&~:p)
+OperatorChain x ys &~: p = OperatorChain (x&~:p) (second (&~:p) <$> ys)
 e &~: _ = e
 
 -- | @expr '&~?' pat ':=:' rep@ gives every possible way @pat@ can be replaced exactly
@@ -89,8 +106,10 @@ e &~? orig:=:alt
       = case fillGaps varMatches alt of
           Just refilled -> [refilled]
 Function f x &~? p = Function f <$> (x&~?p)
-Operator o x y &~? p = (flip (Operator o) y <$> (x&~?p))
-                    ++ (      Operator o  x <$> (y&~?p))
+OperatorChain x [] &~? p = (`OperatorChain`[]) <$> (x&~?p)
+OperatorChain x ((o,y):zs) &~? p
+       = [OperatorChain ξ ((o,y):ζs) | OperatorChain ξ ζs <- OperatorChain x zs &~? p]
+        ++ (OperatorChain x . (:zs) . (o,) <$> (y&~?p))
 e &~? _ = []
 
 fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (Expattern s² s¹ s⁰) -> Maybe (CAS s² s¹ s⁰)
@@ -98,7 +117,9 @@ fillGaps matches (Gap i)
   | rematch@(Just _) <- Map.lookup i matches  = rematch
 fillGaps matches (Symbol s) = Just $ Symbol s
 fillGaps matches (Function f x) = Function f <$> fillGaps matches x
-fillGaps matches (Operator o x y) = Operator o <$> fillGaps matches x <*> fillGaps matches y
+fillGaps matches (OperatorChain x ys)
+    = OperatorChain <$> fillGaps matches x
+                    <*> sequence [ (o,) <$> fillGaps matches y | (o,y) <- ys ]
 fillGaps _ _ = Nothing
 
 exploreEquality :: (Eq s⁰, Eq s¹, Eq s²)
