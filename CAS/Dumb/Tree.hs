@@ -64,6 +64,16 @@ chainableInfix ppred infx x (OperatorChain y zs)
  | all (ppred . fst) zs  = OperatorChain x $ zs++[(infx,y)]
 chainableInfix _ infx a b = OperatorChain a [(infx,b)]
 
+associativeOperator :: Eq s² => s² -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
+                                  -> CAS' γ s² s¹ s⁰
+associativeOperator o (OperatorChain x ys) (OperatorChain ξ υs)
+ | all ((==o) . fst) $ ys ++ υs  = OperatorChain x $ υs ++ (o,ξ):ys
+associativeOperator o (OperatorChain x ys) z
+ | all ((==o) . fst) $ ys  = OperatorChain x $ (o,z):ys
+associativeOperator o x (OperatorChain y zs)
+ | all ((==o) . fst) $ zs  = OperatorChain x $ zs ++ [(o,y)]
+associativeOperator o x y = OperatorChain x [(o,y)]
+
 
 
 type CAS = CAS' Void
@@ -118,23 +128,12 @@ OperatorChain x ys &~: pat@(OperatorChain ξ υs):=:alt
   , (remainSect, patLSect) <- splitAt (exprLength-patLength) ys
     = let (or₀, yr₀) = last remainSect
       in case matchPattern pat (OperatorChain x patLSect) of
-       Just varMatchesL -> case ( fillGaps varMatchesL alt
-                                , OperatorChain yr₀ (init remainSect) &~: pat:=:alt ) of
-          (Just (OperatorChain x' yps'), OperatorChain yr₀' zs')
-           | all ((==or₀) . fst) yps'
-           , all ((==or₀) . fst) zs'
-             -> OperatorChain x' $ zs'++(or₀,yr₀'):yps'
-          (Just patReplaced, OperatorChain yr₀' zs')
-           | all ((==or₀) . fst) zs'
-             -> OperatorChain patReplaced $ zs'++[(or₀,yr₀')]
-          (Just patReplaced, z')
-             -> OperatorChain patReplaced [(or₀,z')]
+       Just varMatchesL -> case fillGaps varMatchesL alt of
+          Just patReplaced -> associativeOperator or₀ patReplaced
+                               $ OperatorChain yr₀ (init remainSect) &~: pat:=:alt
        Nothing -> let (o₀,y₀) = last ys
-                  in case OperatorChain y₀ (init ys) &~: pat:=:alt of
-          OperatorChain y₀' yps'
-           | all ((==o₀) . fst) yps'
-               -> OperatorChain x $ yps'++[(o₀,y₀')]
-          patReplaced -> OperatorChain x [(o₀,patReplaced)]
+                  in associativeOperator o₀ x
+                       $ OperatorChain y₀ (init ys) &~: pat:=:alt
  where patLength = length υs
        exprLength = length ys
 e &~: orig:=:alt
@@ -144,17 +143,8 @@ e &~: orig:=:alt
 Function f x &~: p = Function f $ x&~:p
 Operator o x y &~: p = Operator o (x&~:p) (y&~:p)
 OperatorChain x [] &~: p = x&~:p
-OperatorChain x ((oo,z):ys) &~: p = case (OperatorChain x ys&~:p, z&~:p) of
-         (OperatorChain x' ys', OperatorChain z₀' zs')
-           | all ((==oo) . fst) $ ys'++zs'
-            -> OperatorChain x' $ zs' ++ (oo,z₀'):ys'
-         (OperatorChain x' ys', z')
-           | all ((==oo) . fst) $ ys'
-            -> OperatorChain x' $ (oo,z'):ys'
-         (xy', OperatorChain z₀' zs')
-           | all ((==oo) . fst) $ zs'
-            -> OperatorChain xy' $ zs'++[(oo,z₀')]
-         (xy', z') -> OperatorChain xy' [(oo,z')]
+OperatorChain x ((oo,z):ys) &~: p
+    = associativeOperator oo (OperatorChain x ys&~:p) (z&~:p)
 e &~: _ = e
 
 -- | @expr '&~?' pat ':=:' rep@ gives every possible way @pat@ can be replaced exactly
