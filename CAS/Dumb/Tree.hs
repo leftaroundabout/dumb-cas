@@ -31,6 +31,7 @@ import GHC.Generics
 
 data CAS' γ s² s¹ s⁰ = Symbol !s⁰
                      | Function !s¹ (CAS' γ s² s¹ s⁰)
+                     | Operator !s² (CAS' γ s² s¹ s⁰) (CAS' γ s² s¹ s⁰)
                      | OperatorChain
                           (CAS' γ s² s¹ s⁰)       -- Initial operand
                           [(s², CAS' γ s² s¹ s⁰)] -- Chain of operator-application, in
@@ -39,8 +40,6 @@ data CAS' γ s² s¹ s⁰ = Symbol !s⁰
                      | Gap !γ
   deriving (Functor, Eq, Generic)
 
-pattern Operator :: s² -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
-pattern Operator o x y = OperatorChain x [(o,y)]
 
 
 chainableInfixL, chainableInfixR, chainableInfix
@@ -51,19 +50,19 @@ chainableInfixL, chainableInfixR, chainableInfix
                -> CAS' γ s² s¹ s⁰
 chainableInfixL ppred infx (OperatorChain x ys) z
  | all (ppred . fst) ys  = OperatorChain x $ (infx,z):ys
-chainableInfixL _ infx a b = Operator infx a b
+chainableInfixL _ infx a b = OperatorChain a [(infx,b)]
 
 chainableInfixR ppred infx (OperatorChain x ys) z
  | all (ppred . fst) ys  = OperatorChain x $ (infx,z):ys
 chainableInfixR ppred infx x (OperatorChain y zs)
  | all (ppred . fst) zs  = OperatorChain x $ zs++[(infx,y)]
-chainableInfixR _ infx a b = Operator infx a b
+chainableInfixR _ infx a b = OperatorChain a [(infx,b)]
 
 chainableInfix ppred infx (OperatorChain x ys) z
  | all (ppred . fst) ys  = OperatorChain x $ (infx,z):ys
 chainableInfix ppred infx x (OperatorChain y zs)
  | all (ppred . fst) zs  = OperatorChain x $ zs++[(infx,y)]
-chainableInfix _ infx a b = Operator infx a b
+chainableInfix _ infx a b = OperatorChain a [(infx,b)]
 
 
 
@@ -92,6 +91,8 @@ matchPattern (Symbol s) (Symbol s')
  | s==s'  = Just Map.empty
 matchPattern (Function f x) (Function f' ξ)
  | f==f'  = matchPattern x ξ
+matchPattern (Operator o x y) (Operator o' ξ υ)
+    = matchPattern (OperatorChain x [(o,y)]) (OperatorChain ξ [(o',υ)])
 matchPattern (OperatorChain x zs) (OperatorChain ξ ζs)
  | (fst<$>zs) == (fst<$>ζs)  = do
      xmatches <- matchPattern x ξ
@@ -139,6 +140,7 @@ e &~: orig:=:alt
       = case fillGaps varMatches alt of
           Just refilled -> refilled
 Function f x &~: p = Function f $ x&~:p
+Operator o x y &~: p = Operator o (x&~:p) (y&~:p)
 OperatorChain x ys &~: p = OperatorChain (x&~:p) (second (&~:p) <$> ys)
 e &~: _ = e
 
@@ -153,6 +155,8 @@ e &~? orig:=:alt
       = case fillGaps varMatches alt of
           Just refilled -> [refilled]
 Function f x &~? p = Function f <$> (x&~?p)
+Operator o x y &~? p = (flip (Operator o) y <$> (x&~?p))
+                    ++ (      Operator o  x <$> (y&~?p))
 OperatorChain x [] &~? p = (`OperatorChain`[]) <$> (x&~?p)
 OperatorChain x ((o,y):zs) &~? p
        = [OperatorChain ξ ((o,y):ζs) | OperatorChain ξ ζs <- OperatorChain x zs &~? p]

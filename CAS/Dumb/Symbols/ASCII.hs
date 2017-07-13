@@ -45,6 +45,7 @@ import CAS.Dumb.Symbols.PatternGenerator
 
 import Data.Void
 import Data.Monoid
+import Control.Arrow
 
 data ASCII
 instance SymbolClass ASCII where
@@ -79,6 +80,7 @@ instance ∀ c . (ASCIISymbols c, Monoid c)
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)
+         purgeGaps (OperatorChain x ys) = OperatorChain (purgeGaps x) (second purgeGaps<$>ys)
          purgeGaps (Gap gid) = Symbol (StringSymbol $ fromASCIISymbol '_'
                                                     <>fromASCIISymbol (toEnum gid) )
                               :: (CAS (Infix c) (Encapsulation c) (Symbol c))

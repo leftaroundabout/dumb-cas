@@ -24,6 +24,8 @@ import CAS.Dumb.Tree
 import Data.Monoid
 import qualified Language.Haskell.TH.Syntax as Hs
 
+import Control.Arrow
+
 import Data.String (IsString)
 
 import GHC.Exts (Constraint)
@@ -155,6 +157,8 @@ renderSymbolExpression ctxt ρ (Function (Encapsulation needInnerP atomical l r)
                                          else AtLHS (Hs.Fixity 0 Hs.InfixN))
                           ρ x)
                 (StringSymbol r) Nothing
+renderSymbolExpression ctxt ρ (Operator o x y)
+    = renderSymbolExpression ctxt ρ $ OperatorChain x [(o,y)]
 renderSymbolExpression ctxt ρ (OperatorChain x ys@(_:_)) = go parens x ys
  where fxty = foldr1 ( \f f' -> if f==f'
                   then f
@@ -254,4 +258,5 @@ f %$> Symbol (PrimitiveSymbol c) = case fromCharSymbol ([]::[σ]) of
 f %$> Symbol (StringSymbol s) = Symbol . StringSymbol $ f s
 f %$> Function g q = Function g $ f %$> q
 f %$> Operator o p q = Operator o (f%$>p) (f%$>q)
+f %$> OperatorChain p qs = OperatorChain (f%$>p) (second (f%$>)<$>qs)
 f %$> Gap γ = Gap γ

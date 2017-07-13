@@ -70,6 +70,7 @@ import CAS.Dumb.Symbols
 import CAS.Dumb.Symbols.PatternGenerator
 
 import Data.Void
+import Control.Arrow
 
 
 data Unicode_MathLatin_RomanGreek__BopomofoGaps
@@ -139,4 +140,5 @@ instance ∀ c . UnicodeSymbols c => Show (Pattern c) where
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)
+         purgeGaps (OperatorChain x ys) = OperatorChain (purgeGaps x) (second purgeGaps<$>ys)
          purgeGaps (Gap gid) = Symbol (PrimitiveSymbol (toEnum gid)) :: Expression c
