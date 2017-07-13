@@ -127,6 +127,8 @@ OperatorChain x ys &~: pat@(OperatorChain ξ υs):=:alt
           (Just patReplaced, OperatorChain yr₀' zs')
            | all ((==or₀) . fst) zs'
              -> OperatorChain patReplaced $ zs'++[(or₀,yr₀')]
+          (Just patReplaced, z')
+             -> OperatorChain patReplaced [(or₀,z')]
        Nothing -> let (o₀,y₀) = last ys
                   in case OperatorChain y₀ (init ys) &~: pat:=:alt of
           OperatorChain y₀' yps'
@@ -141,7 +143,18 @@ e &~: orig:=:alt
           Just refilled -> refilled
 Function f x &~: p = Function f $ x&~:p
 Operator o x y &~: p = Operator o (x&~:p) (y&~:p)
-OperatorChain x ys &~: p = OperatorChain (x&~:p) (second (&~:p) <$> ys)
+OperatorChain x [] &~: p = x&~:p
+OperatorChain x ((oo,z):ys) &~: p = case (OperatorChain x ys&~:p, z&~:p) of
+         (OperatorChain x' ys', OperatorChain z₀' zs')
+           | all ((==oo) . fst) $ ys'++zs'
+            -> OperatorChain x' $ zs' ++ (oo,z₀'):ys'
+         (OperatorChain x' ys', z')
+           | all ((==oo) . fst) $ ys'
+            -> OperatorChain x' $ (oo,z'):ys'
+         (xy', OperatorChain z₀' zs')
+           | all ((==oo) . fst) $ zs'
+            -> OperatorChain xy' $ zs'++[(oo,z₀')]
+         (xy', z') -> OperatorChain xy' [(oo,z')]
 e &~: _ = e
 
 -- | @expr '&~?' pat ':=:' rep@ gives every possible way @pat@ can be replaced exactly
