@@ -154,7 +154,7 @@ renderSymbolExpression ctxt ρ (Function (Encapsulation needInnerP atomical l r)
    = ρ (not atomical && ctxt==AtFunctionArgument) Nothing (StringSymbol l) . Just
       $ ρ False (Just $ renderSymbolExpression
                           (if needInnerP then AtFunctionArgument
-                                         else AtLHS (Hs.Fixity 0 Hs.InfixN))
+                                         else AtLHS (Hs.Fixity (-1) Hs.InfixN))
                           ρ x)
                 (StringSymbol r) Nothing
 renderSymbolExpression ctxt ρ (Operator o x y)
