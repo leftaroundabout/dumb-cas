@@ -294,9 +294,9 @@ continueExpr op f = go
 
 
 
-infixl 1 &~~!
+infixl 1 &~~!, &~~:
 
--- | Apply a sequence of pattern-transformation and yield the result
+-- | Apply a sequence of pattern-transformations and yield the result
 --   concatenated to the original via the corresponding chain-operator.
 --   Because only the rightmost expression in a chain is processed,
 --   this can be iterated, giving a chain of intermediate results.
@@ -320,4 +320,27 @@ e &~~! tfms@(OperatorChain _ [(tfmOp, _)] : _)
               (alt:_) -> go alt tfms'
               _ -> error $ "Unable to match pattern "++show p₀
                           ++"\nin expression "++show e'
+       go e' [] = e'
+
+
+-- | Apply a sequence of pattern-transformations, each in every spot possible,
+--   and yield the result
+--   concatenated to the original via the corresponding chain-operator.
+--   Because only the rightmost expression in a chain is processed,
+--   this can be iterated, giving a chain of intermediate results.
+(&~~:) :: ( Eq l, Eq (Encapsulation l), SymbolClass σ, SCConstraint σ l
+         , Show (CAS (Infix l) (Encapsulation l) (SymbolD σ l))
+         , Show (CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)) )
+    => CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+        -> [CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)]
+        -> CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+e &~~: [] = e
+OperatorChain e₀ ((eo@(Infix (Hs.Fixity fte _) _), eΩ):es)
+     &~~: tfms@(OperatorChain p₀ [(to@(Infix (Hs.Fixity ftp _) _),p₁)] : _)
+   | fte<=ftp   = associativeOperator eo (OperatorChain e₀ es) (eΩ&~~:tfms)
+e &~~: tfms@(OperatorChain _ [(tfmOp, _)] : _)
+  = OperatorChain e [(tfmOp, go e tfms)]
+ where go e' (OperatorChain p₀ [(tfmOp', p₁)] : tfms')
+          = case e' &~: (p₀:=:p₁) of
+              alt -> go alt tfms'
        go e' [] = e'
