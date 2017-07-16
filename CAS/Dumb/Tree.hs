@@ -133,7 +133,7 @@ OperatorChain x ys &~: pat@(OperatorChain ξ υs):=:alt
           Just patReplaced -> associativeOperator or₀ patReplaced
                                $ OperatorChain yr₀ (init remainSect) &~: pat:=:alt
        Nothing -> let (o₀,y₀) = last ys
-                  in associativeOperator o₀ x
+                  in associativeOperator o₀ (x&~:(pat:=:alt))
                        $ OperatorChain y₀ (init ys) &~: pat:=:alt
  where patLength = length υs
        exprLength = length ys
