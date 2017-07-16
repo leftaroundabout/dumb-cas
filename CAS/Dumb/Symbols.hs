@@ -264,13 +264,41 @@ f %$> Gap γ = Gap γ
 
 
 
+continueExpr :: (Eq l, Monoid l)
+     => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+          -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+          -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+       -- ^ Combinator to use for chaining the new expression to the old ones
+     -> ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+                -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+       -- ^ Transformation to apply to the rightmost expression in the previous chain
+     -> ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+                -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+       -- ^ Transformation which appends the result.
+continueExpr op f = go
+ where go (OperatorChain e₀ ((eo@(Infix (Hs.Fixity fte _) _), eΩ):es))
+         | fte <= chainingFxty
+                    = associativeOperator eo (OperatorChain e₀ es) (go eΩ)
+       go e
+         | Just (co, fxtyDir) <- chainingOp
+              = OperatorChain e [(Infix (Hs.Fixity chainingFxty fxtyDir) co, f e)]
+         | otherwise
+              = op e $ f e
+       (chainingFxty, chainingOp)
+                      = case op (Symbol $ StringSymbol mempty)
+                                (Symbol $ StringSymbol mempty) of
+          OperatorChain _ ((Infix (Hs.Fixity fxty fxtyDir) op, _):_)
+            -> (fxty, Just (op, fxtyDir))
+          _ -> (-1, Nothing)
+
+
 
 infixl 1 &~~!
 
 -- | Apply a sequence of pattern-transformation and yield the result
 --   concatenated to the original via the corresponding chain-operator.
 --   Because only the rightmost expression in a chain is processed,
---   this can be iterated.
+--   this can be iterated, giving a chain of intermediate results.
 --
 --   If one of the patterns does not match, this manipulator will raise
 --   an error.

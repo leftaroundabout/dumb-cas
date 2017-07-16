@@ -12,7 +12,7 @@
 
 module CAS.Dumb (
              -- * Symbolic manipulation
-               (&~:), (&~?), (&~~!)
+               (&~:), (&~?), (&~~!), continueExpr
              -- * Constructing equality axioms
              , Equality'((:=:))
              -- * Variable-symbols
