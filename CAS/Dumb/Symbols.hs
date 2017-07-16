@@ -160,6 +160,7 @@ renderSymbolExpression ctxt ρ (Function (Encapsulation needInnerP atomical l r)
                 (StringSymbol r) Nothing
 renderSymbolExpression ctxt ρ (Operator o x y)
     = renderSymbolExpression ctxt ρ $ OperatorChain x [(o,y)]
+renderSymbolExpression ctxt ρ (OperatorChain x []) = renderSymbolExpression ctxt ρ x
 renderSymbolExpression ctxt ρ (OperatorChain x ys@(_:_)) = go parens x ys
  where fxty = foldr1 ( \f f' -> if f==f'
                   then f
