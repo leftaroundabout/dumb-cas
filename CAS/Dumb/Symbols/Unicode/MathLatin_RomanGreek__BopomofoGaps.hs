@@ -65,7 +65,7 @@ module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps (
         ) where
 
 import CAS.Dumb.Tree
-import CAS.Dumb.Symbols
+import CAS.Dumb.Symbols hiding ((&~~!))
 
 import CAS.Dumb.Symbols.PatternGenerator
 

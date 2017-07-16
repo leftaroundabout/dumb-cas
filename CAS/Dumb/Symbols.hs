@@ -10,6 +10,7 @@
 
 {-# LANGUAGE PatternSynonyms           #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE ConstraintKinds           #-}
@@ -260,3 +261,34 @@ f %$> Function g q = Function g $ f %$> q
 f %$> Operator o p q = Operator o (f%$>p) (f%$>q)
 f %$> OperatorChain p qs = OperatorChain (f%$>p) (second (f%$>)<$>qs)
 f %$> Gap γ = Gap γ
+
+
+
+
+infixl 1 &~~!
+
+-- | Apply a sequence of pattern-transformation and yield the result
+--   concatenated to the original via the corresponding chain-operator.
+--   Because only the rightmost expression in a chain is processed,
+--   this can be iterated.
+--
+--   If one of the patterns does not match, this manipulator will raise
+--   an error.
+(&~~!) :: ( Eq l, Eq (Encapsulation l), SymbolClass σ, SCConstraint σ l
+         , Show (CAS (Infix l) (Encapsulation l) (SymbolD σ l))
+         , Show (CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)) )
+    => CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+        -> [CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)]
+        -> CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+e &~~! [] = e
+OperatorChain e₀ ((eo@(Infix (Hs.Fixity fte _) _), eΩ):es)
+     &~~! tfms@(OperatorChain p₀ [(to@(Infix (Hs.Fixity ftp _) _),p₁)] : _)
+   | fte<=ftp   = associativeOperator eo (OperatorChain e₀ es) (eΩ&~~!tfms)
+e &~~! tfms@(OperatorChain _ [(tfmOp, _)] : _)
+  = OperatorChain e [(tfmOp, go e tfms)]
+ where go e' (OperatorChain p₀ [(tfmOp', p₁)] : tfms')
+          = case e' &~? (p₀:=:p₁) of
+              (alt:_) -> go alt tfms'
+              _ -> error $ "Unable to match pattern "++show p₀
+                          ++"\nin expression "++show e'
+       go e' [] = e'
