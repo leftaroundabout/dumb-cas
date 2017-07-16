@@ -11,6 +11,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveGeneric       #-}
 {-# LANGUAGE TupleSections                      #-}
 {-# LANGUAGE PatternSynonyms                    #-}
+{-# LANGUAGE FlexibleContexts                   #-}
 {-# LANGUAGE ScopedTypeVariables, UnicodeSyntax #-}
 
 module CAS.Dumb.Tree where
@@ -116,7 +117,7 @@ matchPattern (OperatorChain x zs) (OperatorChain ξ ζs)
              >>= (`merge` ms)
 matchPattern _ _ = Nothing
 
-infixl 1 &~:, &~?
+infixl 1 &~:, &~?, &~!
 
 -- | @expr '&~:' pat ':=:' rep@ replaces every occurence of @pat@ within @expr@ with @rep@.
 --
@@ -178,6 +179,20 @@ OperatorChain x ((o,y):zs) &~? p@(orig:=:alt)
         | otherwise  = []
        exprLength = length zs + 1
 e &~? _ = []
+
+
+-- | @expr '&~!' pat ':=:' rep@ replaces @pat@ exactly once in @expr@. If this
+--   is not possible, an error is raised. If multiple occurences match, the leftmost
+--   is preferred.
+(&~!) :: ( Eq s⁰, Eq s¹, Eq s²
+         , Show (CAS s² s¹ s⁰), Show (CAS' GapId s² s¹ s⁰) )
+         => CAS s² s¹ s⁰ -> Eqspattern s² s¹ s⁰ -> CAS s² s¹ s⁰
+e &~! orig := (alt:=_):_ = e &~! orig:=:alt
+e&~!pat@(orig:=:_) = case e&~?pat of
+     (e':_) -> e'
+     []     -> error $ "Unable to match pattern "++show orig
+                          ++"\nin expression "++show e
+
 
 fillGaps :: Map GapId (CAS s² s¹ s⁰) -> (Expattern s² s¹ s⁰) -> Maybe (CAS s² s¹ s⁰)
 fillGaps matches (Gap i)
