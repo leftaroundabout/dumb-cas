@@ -184,6 +184,9 @@ fillGaps matches (Gap i)
   | rematch@(Just _) <- Map.lookup i matches  = rematch
 fillGaps matches (Symbol s) = Just $ Symbol s
 fillGaps matches (Function f x) = Function f <$> fillGaps matches x
+fillGaps matches (Operator o x y)
+    = Operator o <$> fillGaps matches x
+                 <*> fillGaps matches y
 fillGaps matches (OperatorChain x ys)
     = OperatorChain <$> fillGaps matches x
                     <*> sequence [ (o,) <$> fillGaps matches y | (o,y) <- ys ]
