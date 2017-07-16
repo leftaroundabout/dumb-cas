@@ -162,8 +162,8 @@ Operator o x y &~? p = (flip (Operator o) y <$> (x&~?p))
                     ++ (      Operator o  x <$> (y&~?p))
 OperatorChain x [] &~? p = (`OperatorChain`[]) <$> (x&~?p)
 OperatorChain x ((o,y):zs) &~? p@(orig:=:alt)
-       = [ OperatorChain ξ ((o,y):ζs)
-         | OperatorChain ξ ζs <- OperatorChain x zs &~? p ]
+       = [ associativeOperator o ξs' y
+         | ξs' <- OperatorChain x zs &~? p ]
       ++ rSectMatched
       ++ (OperatorChain x . (:zs) . (o,) <$> (y&~?p))
  where rSectMatched
