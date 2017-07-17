@@ -161,7 +161,7 @@ e &~? orig:=:alt
 Function f x &~? p = Function f <$> (x&~?p)
 Operator o x y &~? p = (flip (Operator o) y <$> (x&~?p))
                     ++ (      Operator o  x <$> (y&~?p))
-OperatorChain x [] &~? p = (`OperatorChain`[]) <$> (x&~?p)
+OperatorChain x [] &~? p = x&~?p
 OperatorChain x ((o,y):zs) &~? p@(orig:=:alt)
        = [ associativeOperator o ξs' y
          | ξs' <- OperatorChain x zs &~? p ]
