@@ -210,3 +210,16 @@ fillGaps _ _ = Nothing
 exploreEquality :: (Eq s⁰, Eq s¹, Eq s²)
            => [Expattern s² s¹ s⁰] -> CAS s² s¹ s⁰ -> Equality s² s¹ s⁰
 exploreEquality tfms = undefined
+
+
+
+
+
+showStructure :: CAS' γ s² s¹ s⁰ -> String
+showStructure e = go e ""
+ where go (Symbol _) = ('σ':)
+       go (Gap _) = ('γ':)
+       go (Function _ x) = ("φ ("++) . go x . (')':)
+       go (Operator _ x y) = ('(':) . go x . (")`υ`("++) . go y . (")"++)
+       go (OperatorChain x ys) = ("χ ["++) . go x
+                              . flip (foldr $ ((", "++).) . go . snd) (reverse ys) . (']':)
