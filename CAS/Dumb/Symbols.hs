@@ -59,6 +59,10 @@ instance Eq (Encapsulation String) where
          dropParens lr (' ':rr) = dropParens lr rr
          dropParens lr rr = (lr,rr)
 
+type AlgebraExpr σ l = CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+type AlgebraExpr' γ σ l = CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
+type AlgebraPattern σ l = AlgebraExpr' GapId σ l
+
 don'tParenthesise :: Monoid s¹
                   => CAS' γ (Infix s²) (Encapsulation s¹) s⁰
                   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
@@ -78,7 +82,7 @@ symbolFunction :: Monoid s¹ => s¹
 symbolFunction f a = Function (Encapsulation True False f mempty) a
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
-          => Num (CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String)) where
+          => Num (AlgebraExpr' γ σ String) where
   fromInteger n
    | n<0        = negate . fromInteger $ -n
    | otherwise  = Symbol $ NatSymbol n
@@ -97,7 +101,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
    where fcs = fromCharSymbol ([]::[σ])
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
-          => Fractional (CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String)) where
+          => Fractional (AlgebraExpr' γ σ String) where
   fromRational n
    | n < 0                        = negate . fromRational $ -n
    | denominator n `mod` 10 == 0  = undefined
@@ -107,7 +111,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
    where fcs = fromCharSymbol ([]::[σ])
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
-          => Floating (CAS' γ (Infix String) (Encapsulation String) (SymbolD σ String)) where
+          => Floating (AlgebraExpr' γ σ String) where
   pi = Symbol $ StringSymbol "pi"
   (**) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "**")
   logBase = symbolInfix (Infix (Hs.Fixity 10 Hs.InfixL) "`logBase`")
@@ -149,7 +153,7 @@ data ContextFixity = AtLHS Hs.Fixity
 
 renderSymbolExpression :: ∀ σ c r . (SymbolClass σ, SCConstraint σ c)
          => ContextFixity -> RenderingCombinator σ c r
-                    -> CAS (Infix c) (Encapsulation c) (SymbolD σ c) -> r
+                    -> AlgebraExpr σ c -> r
 renderSymbolExpression _ ρ (Symbol s) = ρ False Nothing s Nothing
 renderSymbolExpression ctxt ρ (Function (Encapsulation needInnerP atomical l r) x)
    = ρ (not atomical && ctxt==AtFunctionArgument) Nothing (StringSymbol l) . Just
@@ -193,7 +197,7 @@ renderSymbolExpression ctxt ρ (OperatorChain x ys@(_:_)) = go parens x ys
 
 
 showsPrecASCIISymbol :: (ASCIISymbols c, SymbolClass σ, SCConstraint σ c)
-       => Int -> CAS (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+       => Int -> AlgebraExpr σ c -> ShowS
 showsPrecASCIISymbol ctxt
       = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
  where ρ dop lctxt (StringSymbol sym) rctxt
@@ -214,7 +218,7 @@ instance UnicodeSymbols String where
 
 
 showsPrecUnicodeSymbol :: (UnicodeSymbols c, SymbolClass σ, SCConstraint σ c)
-       => Int -> CAS (Infix c) (Encapsulation c) (SymbolD σ c) -> ShowS
+       => Int -> AlgebraExpr σ c -> ShowS
 showsPrecUnicodeSymbol ctxt
       = renderSymbolExpression (AtLHS (Hs.Fixity ctxt Hs.InfixN)) ρ
  where ρ dop lctxt (StringSymbol sym) rctxt
@@ -266,15 +270,11 @@ f %$> Gap γ = Gap γ
 
 
 continueExpr :: (Eq l, Monoid l)
-     => ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-          -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-          -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+     => ( AlgebraExpr' γ σ l -> AlgebraExpr' γ σ l -> AlgebraExpr' γ σ l )
        -- ^ Combinator to use for chaining the new expression to the old ones
-     -> ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-                -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+     -> ( AlgebraExpr' γ σ l -> AlgebraExpr' γ σ l )
        -- ^ Transformation to apply to the rightmost expression in the previous chain
-     -> ( CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
-                -> CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l) )
+     -> ( AlgebraExpr' γ σ l -> AlgebraExpr' γ σ l )
        -- ^ Transformation which appends the result.
 continueExpr op f = go
  where go (OperatorChain e₀ ((eo@(Infix (Hs.Fixity fte _) _), eΩ):es))
@@ -304,11 +304,8 @@ infixl 1 &~~!, &~~:
 --   If one of the patterns does not match, this manipulator will raise
 --   an error.
 (&~~!) :: ( Eq l, Eq (Encapsulation l), SymbolClass σ, SCConstraint σ l
-         , Show (CAS (Infix l) (Encapsulation l) (SymbolD σ l))
-         , Show (CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)) )
-    => CAS (Infix l) (Encapsulation l) (SymbolD σ l)
-        -> [CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)]
-        -> CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+         , Show (AlgebraExpr σ l), Show (AlgebraPattern σ l) )
+    => AlgebraExpr σ l -> [AlgebraPattern σ l] -> AlgebraExpr σ l
 e &~~! [] = e
 OperatorChain e₀ ((eo@(Infix (Hs.Fixity fte _) _), eΩ):es)
      &~~! tfms@(OperatorChain p₀ [(to@(Infix (Hs.Fixity ftp _) _),p₁)] : _)
@@ -325,11 +322,8 @@ e &~~! tfms@(OperatorChain _ [(tfmOp, _)] : _)
 --   Because only the rightmost expression in a chain is processed,
 --   this can be iterated, giving a chain of intermediate results.
 (&~~:) :: ( Eq l, Eq (Encapsulation l), SymbolClass σ, SCConstraint σ l
-         , Show (CAS (Infix l) (Encapsulation l) (SymbolD σ l))
-         , Show (CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)) )
-    => CAS (Infix l) (Encapsulation l) (SymbolD σ l)
-        -> [CAS' GapId (Infix l) (Encapsulation l) (SymbolD σ l)]
-        -> CAS (Infix l) (Encapsulation l) (SymbolD σ l)
+         , Show (AlgebraExpr σ l), Show (AlgebraPattern σ l) )
+    => AlgebraExpr σ l -> [AlgebraPattern σ l] -> AlgebraExpr σ l
 e &~~: [] = e
 OperatorChain e₀ ((eo@(Infix (Hs.Fixity fte _) _), eΩ):es)
      &~~: tfms@(OperatorChain p₀ [(to@(Infix (Hs.Fixity ftp _) _),p₁)] : _)
