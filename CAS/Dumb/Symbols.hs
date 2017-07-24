@@ -32,6 +32,7 @@ import Data.String (IsString)
 import GHC.Exts (Constraint)
 
 import Data.Ratio (denominator, numerator)
+import Numeric.Literals.Decimal
 
 
 data SymbolD σ c = NatSymbol !Integer
@@ -102,11 +103,9 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
           => Fractional (AlgebraExpr' γ σ String) where
-  fromRational n
-   | n < 0                        = negate . fromRational $ -n
-   | denominator n `mod` 10 == 0  = undefined
-   | otherwise                    = fromInteger (numerator n)
-                                    / fromInteger (denominator n)
+  fromRational n = case fromRational n of
+     n:%d -> fromIntegral n / fromIntegral d
+     nSci -> Symbol (StringSymbol $ show nSci)
   (/) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '/')
    where fcs = fromCharSymbol ([]::[σ])
 

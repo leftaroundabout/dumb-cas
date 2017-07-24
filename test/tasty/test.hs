@@ -77,6 +77,12 @@ tests = testGroup "Tests"
       show (𝑎/signum π :: Expr) @?= "𝑎/signum π"
      , testCase "logBase 2 32 ** atan pi" $
       show (logBase 2 32 ** atan pi :: Expr) @?= "2`logBase`32**atan pi"
+     , testCase "37.84" $
+      show (37.84 :: Expr) @?= "37.84"
+     , testCase "5e-23" $
+      show (5e-23 :: Expr) @?= "5e-23"
+     , testCase "-5.3e7" $
+      show (-5.3e8 :: Expr) @?= " -5.3e8"
      ]
   ]
 
