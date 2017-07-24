@@ -4,7 +4,12 @@
 name:                dumb-cas
 version:             0.1.0.0
 synopsis:            A computer “algebra” system that knows nothing about algebra, at the core.
--- description:         
+description:         This is a framework for untyped, symbolic computations like a CAS
+                     does, without any baked-in rules whatsoever but the ability to
+                     define expressions very consisely, as well as any transformation
+                     rules you want. The idea is basically to combine the flexibility
+                     of a Lisp with the conciseness of a Regex engine, using syntax similar
+                     to Haskell's standard pattern matching.
 license:             GPL-3
 license-file:        LICENSE
 author:              Justus Sagemüller
@@ -45,5 +50,5 @@ test-suite test
       base >= 4 && < 5
     , tasty >= 0.7
     , tasty-hunit
-    , dumb-cas==0.1.0.0
+    , dumb-cas
 
