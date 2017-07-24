@@ -14,6 +14,7 @@ license:             GPL-3
 license-file:        LICENSE
 author:              Justus Sagemüller
 maintainer:          (@) jsagemue $ uni-koeln.de
+homepage:            https://github.com/leftaroundabout/dumb-cas
 -- copyright:           
 category:            Math
 build-type:          Simple
