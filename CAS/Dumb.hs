@@ -19,7 +19,7 @@ module CAS.Dumb (
              , (%$>)
              , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
              -- * Types
-             , CAS, CAS', SymbolD, Encapsulation
+             , CAS, CAS', SymbolD, Infix, Encapsulation
              -- * Debugging
              , showStructure, throwStructure
              ) where
@@ -27,7 +27,7 @@ module CAS.Dumb (
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
 import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
-             hiding ((%$>), SymbolD, Encapsulation)
+             hiding ((%$>), SymbolD, Encapsulation, Infix)
 
 
 throwStructure :: CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
