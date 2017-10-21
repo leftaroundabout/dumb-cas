@@ -18,13 +18,16 @@ module CAS.Dumb (
              -- * Variable-symbols
              , (%$>)
              , module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
+             -- * Types
+             , CAS, CAS', SymbolD, Encapsulation
              -- * Debugging
              , showStructure, throwStructure
              ) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
-import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps hiding ((%$>))
+import CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
+             hiding ((%$>), SymbolD, Encapsulation)
 
 
 throwStructure :: CAS' γ s² s¹ s⁰ -> CAS' γ s² s¹ s⁰
