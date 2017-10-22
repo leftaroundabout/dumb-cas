@@ -97,6 +97,11 @@ makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχ�
 -- These are only available in GHC>8.2. The ability to use uppercase letters as variables
 -- hinges on a hack using GHC's still recent
 -- <https://ghc.haskell.org/trac/ghc/wiki/PatternSynonyms pattern synonyms> feature.
+--
+-- You can use the "CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek.Qualified"
+-- module if this causes you any trouble; there, all symbols are prefixed with
+-- @sym@ and therefore the uppercase ones are still normal lowercase names
+-- in the Haskell code.
 
 #if __GLASGOW_HASKELL__ > 802
 makeSymbols ''Expression' ['𝐴'..'𝑍']

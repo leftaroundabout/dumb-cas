@@ -26,7 +26,9 @@ library
                        CAS.Dumb.Tree
                        CAS.Dumb.Symbols
                        CAS.Dumb.Symbols.ASCII
+                       CAS.Dumb.Symbols.ASCII.Qualified
                        CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps
+                       CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek.Qualified
   other-modules:       CAS.Dumb.Util.These
                        CAS.Dumb.Symbols.PatternGenerator
   other-extensions:    DeriveFunctor

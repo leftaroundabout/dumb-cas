@@ -68,6 +68,11 @@ _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
 -- These are only available in GHC>8.2. The ability to use uppercase letters as variables
 -- hinges on a hack using GHC's still recent
 -- <https://ghc.haskell.org/trac/ghc/wiki/PatternSynonyms pattern synonyms> feature.
+--
+-- You can use the "CAS.Dumb.Symbols.ASCII.Qualified"
+-- module if this causes you any trouble; there, all symbols are prefixed with
+-- @sym@ and therefore the uppercase ones are still normal lowercase names
+-- in the Haskell code.
 #if __GLASGOW_HASKELL__ > 802
 makeSymbols ''Expression' ['A'..'Z']
 #endif

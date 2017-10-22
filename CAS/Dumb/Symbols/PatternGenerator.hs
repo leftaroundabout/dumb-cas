@@ -25,9 +25,16 @@ import Data.Char
 makeSymbols :: Name   -- ^ Desired type of the symbols.
             -> [Char] -- ^ The letters you want as symbols.
             -> DecsQ
-makeSymbols casType = fmap concat . mapM mkSymbol
+makeSymbols t = makeQualifiedSymbols t ""
+
+makeQualifiedSymbols
+            :: Name   -- ^ Desired type of the symbols.
+            -> String -- ^ Prefix for the generated Haskell names.
+            -> [Char] -- ^ The letters you want as symbols.
+            -> DecsQ
+makeQualifiedSymbols casType namePrefix = fmap concat . mapM mkSymbol
  where mkSymbol c
-        | isLower c = return
+        | isLower (head idfyer) = return
          [ SigD symbName $ ForallT [PlainTV γ, PlainTV s¹, PlainTV s², PlainTV ζ] [] typeName
         -- c :: casType γ s² s¹ ζ
          , ValD (VarP symbName)
@@ -38,7 +45,7 @@ makeSymbols casType = fmap concat . mapM mkSymbol
         -- c = Symbol $ StringSymbol "c"
          ]
 #if __GLASGOW_HASKELL__ > 802
-        | isUpper c = return
+        | isUpper (head idfyer) = return
          [ PatSynSigD symbName (ForallT [] [] $ ForallT [] [] typeName)
         -- pattern c :: casType γ s² s¹ ζ
          , PatSynD symbName
@@ -51,7 +58,8 @@ makeSymbols casType = fmap concat . mapM mkSymbol
         | otherwise = error
              $ "Can only make symbols out of lower- or uppercase letters, which '"
                                 ++ [c] ++ "' is not."
-        where symbName = mkName [c]
+        where idfyer = namePrefix ++ [c]
+              symbName = mkName idfyer
               typeName = ConT casType`AppT`VarT γ`AppT`VarT s²`AppT`VarT s¹`AppT`VarT ζ
               [γ,s²,s¹,ζ] = mkName <$> ["γ","s²","s¹","ζ"]
 
