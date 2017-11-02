@@ -36,7 +36,7 @@ module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps (
         , α,β,γ,δ,ε,ζ,η,θ,ϑ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,ϱ,σ,ς,τ,υ,ϕ,φ,χ,ψ,ω
         -- ** Uppercase letters
         -- $uppercaseCaveat
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
         -- *** Italic
         , pattern 𝐴, pattern 𝐵, pattern 𝐶, pattern 𝐷, pattern 𝐸, pattern 𝐹, pattern 𝐺, pattern 𝐻, pattern 𝐼, pattern 𝐽, pattern 𝐾, pattern 𝐿, pattern 𝑀, pattern 𝑁, pattern 𝑂, pattern 𝑃, pattern 𝑄, pattern 𝑅, pattern 𝑆, pattern 𝑇, pattern 𝑈, pattern 𝑉, pattern 𝑊, pattern 𝑋, pattern 𝑌, pattern 𝑍
         -- *** Bold
@@ -103,7 +103,7 @@ makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχ�
 -- @sym@ and therefore the uppercase ones are still normal lowercase names
 -- in the Haskell code.
 
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
 makeSymbols ''Expression' ['𝐴'..'𝑍']
 
 makeSymbols ''Expression' ['𝐀'..'𝐙']

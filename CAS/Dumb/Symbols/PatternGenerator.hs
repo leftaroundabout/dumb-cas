@@ -44,7 +44,7 @@ makeQualifiedSymbols casType namePrefix = fmap concat . mapM mkSymbol
                 []
         -- c = Symbol $ StringSymbol "c"
          ]
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
         | isUpper (head idfyer) = return
          [ PatSynSigD symbName (ForallT [] [] $ ForallT [] [] typeName)
         -- pattern c :: casType γ s² s¹ ζ

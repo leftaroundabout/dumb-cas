@@ -30,7 +30,7 @@ module CAS.Dumb.Symbols.ASCII (
         , a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
         -- ** Uppercase letters
         -- $uppercaseCaveat
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
         , pattern A, pattern B, pattern C, pattern D, pattern E, pattern F, pattern G, pattern H, pattern I, pattern J, pattern K, pattern L, pattern M, pattern N, pattern O, pattern P, pattern Q, pattern R, pattern S, pattern T, pattern U, pattern V, pattern W, pattern X, pattern Y, pattern Z
 #endif
         -- * Pattern-matching variable symbols
@@ -73,7 +73,7 @@ _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
 -- module if this causes you any trouble; there, all symbols are prefixed with
 -- @sym@ and therefore the uppercase ones are still normal lowercase names
 -- in the Haskell code.
-#if __GLASGOW_HASKELL__ > 802
+#if __GLASGOW_HASKELL__ > 801
 makeSymbols ''Expression' ['A'..'Z']
 #endif
 
