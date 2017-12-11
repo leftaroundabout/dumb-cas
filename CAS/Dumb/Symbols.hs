@@ -150,6 +150,14 @@ data ContextFixity = AtLHS Hs.Fixity
                    | AtFunctionArgument
                    deriving (Eq)
 
+expressionFixity :: AlgebraExpr σ c -> Maybe Hs.Fixity
+expressionFixity (Symbol _) = Nothing
+expressionFixity (Function _ _) = Nothing
+expressionFixity (Operator (Infix fxty _) _ _) = Just fxty
+expressionFixity (OperatorChain _ ((Infix fxty _,_):_)) = Just fxty
+expressionFixity (OperatorChain x₀ []) = expressionFixity x₀
+expressionFixity (Gap _) = Nothing
+
 renderSymbolExpression :: ∀ σ c r . (SymbolClass σ, SCConstraint σ c)
          => ContextFixity -> RenderingCombinator σ c r
                     -> AlgebraExpr σ c -> r
