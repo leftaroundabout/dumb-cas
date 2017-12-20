@@ -78,6 +78,19 @@ instance SymbolClass Unicode_MathLatin_RomanGreek__BopomofoGaps where
   type SCConstraint Unicode_MathLatin_RomanGreek__BopomofoGaps = UnicodeSymbols
   fromCharSymbol _ = fromUnicodeSymbol
 
+instance Unwieldy c => Unwieldy (Symbol c) where
+  unwieldiness (NatSymbol i) = 0.24127 + fromInteger (abs i)
+  unwieldiness (PrimitiveSymbol c)
+    | c>='a' && c<='z'  = 1.17236 + fromIntegral (fromEnum 'z' - ucp)/49.4530
+    | c>='𝑎' && c<='𝑧'  = 1.17249 + fromIntegral (fromEnum '𝑧' - ucp)/49.4564
+    | c=='ℎ'            = 1.17249 + fromIntegral (fromEnum 'z' - fromEnum 'h')/49.4564
+    | c>='A' && c<='Z'  = 1.17211 + fromIntegral (fromEnum 'Z' - ucp)/49.4571
+    | c>='𝐴' && c<='𝑍'  = 1.17213 + fromIntegral (fromEnum '𝑍' - ucp)/49.4511
+    | c>='𝐚' && c<='𝐳'  = 1.17228 + fromIntegral (fromEnum '𝐳' - ucp)/49.4572
+    | c>='𝐀' && c<='𝐙'  = 1.17210 + fromIntegral (fromEnum '𝐙' - ucp)/49.4518
+   where ucp = fromEnum c
+
+
 type Symbol = SymbolD Unicode_MathLatin_RomanGreek__BopomofoGaps
 type Expression' γ s² s¹ c = CAS' γ s² s¹ (Symbol c)
 type Expression c = Expression' Void (Infix c) (Encapsulation c) c

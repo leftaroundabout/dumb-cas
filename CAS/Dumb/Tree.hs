@@ -11,6 +11,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveGeneric       #-}
 {-# LANGUAGE TupleSections                      #-}
 {-# LANGUAGE PatternSynonyms                    #-}
+{-# LANGUAGE FlexibleInstances                  #-}
 {-# LANGUAGE FlexibleContexts                   #-}
 {-# LANGUAGE ScopedTypeVariables, UnicodeSyntax #-}
 
@@ -223,3 +224,24 @@ showStructure e = go e ""
        go (Operator _ x y) = ('(':) . go x . (")`υ`("++) . go y . (")"++)
        go (OperatorChain x ys) = ("χ ["++) . go x
                               . flip (foldr $ ((", "++).) . go . snd) (reverse ys) . (']':)
+
+
+
+type Unwieldiness = Double
+
+class Unwieldy e where
+  unwieldiness :: e -> Unwieldiness
+
+instance (Unwieldy s², Unwieldy s¹, Unwieldy s⁰) => Unwieldy (CAS s² s¹ s⁰) where
+  unwieldiness (Symbol s) = unwieldiness s
+  unwieldiness (Function f x) = unwieldiness f + unwieldiness x
+  unwieldiness (Operator o x y)
+      = unwieldiness o + unwieldiness x + bigFirstPreference*unwieldiness y
+  unwieldiness (OperatorChain x ys)
+      = unwieldiness x + sum [ q * (unwieldiness o + unwieldiness y)
+                             | (q,(o,y)) <- zip [1, bigFirstPreference ..] $ reverse ys ]
+
+-- | How much it is preferred to start an operator-chain with the most complex
+--   subexpression (e.g. with the highest-order monomial).
+bigFirstPreference :: Unwieldiness
+bigFirstPreference = 1 + 1e-6
