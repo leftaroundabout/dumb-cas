@@ -57,6 +57,17 @@ type Expression' γ s² s¹ c = CAS' γ s² s¹ (Symbol c)
 type Expression c = Expression' Void (Infix c) (Encapsulation c) c
 type Pattern c = Expression' GapId (Infix c) (Encapsulation c) c
 
+
+instance Unwieldy c => Unwieldy (Symbol c) where
+  unwieldiness (NatSymbol i) = 0.24127 + fromInteger (abs i)
+  unwieldiness (PrimitiveSymbol c)
+    | c>='a' && c<='z'  = 1.17236 + fromIntegral (fromEnum 'z' - ucp)/49.4530
+    | c>='A' && c<='Z'  = 1.17211 + fromIntegral (fromEnum 'Z' - ucp)/49.4571
+    | otherwise         = 1.24551 + fromIntegral ucp / 52792.42
+                                  + fromIntegral (ucp`mod`136)/9722.3
+   where ucp = fromEnum c
+  unwieldiness (StringSymbol s) = unwieldiness s
+
 makeSymbols ''Expression' ['a'..'z']
 
 _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z

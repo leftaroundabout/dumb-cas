@@ -88,7 +88,15 @@ instance Unwieldy c => Unwieldy (Symbol c) where
     | c>='𝐴' && c<='𝑍'  = 1.17213 + fromIntegral (fromEnum '𝑍' - ucp)/49.4511
     | c>='𝐚' && c<='𝐳'  = 1.17228 + fromIntegral (fromEnum '𝐳' - ucp)/49.4572
     | c>='𝐀' && c<='𝐙'  = 1.17210 + fromIntegral (fromEnum '𝐙' - ucp)/49.4518
+    | c>='𝓐' && c<='𝓩'  = 1.17212 + fromIntegral (fromEnum '𝓩' - ucp)/49.4528
+    | c>='α' && c<='ω'  = 1.03627 + fromIntegral (fromEnum 'ω' - ucp)/342.637
+    | c=='ϑ'            = 1.03628 + fromIntegral (fromEnum 'ω' - fromEnum 'θ')/342.637
+    | c=='ϕ'            = 1.03628 + fromIntegral (fromEnum 'ω' - fromEnum 'φ')/342.637
+    | c>='Α' && c<='Ω'  = 1.03625 + fromIntegral (fromEnum 'Ω' - ucp)/342.642
+    | otherwise         = 1.24551 + fromIntegral ucp / 52792.42
+                                  + fromIntegral (ucp`mod`136)/9722.3
    where ucp = fromEnum c
+  unwieldiness (StringSymbol s) = unwieldiness s
 
 
 type Symbol = SymbolD Unicode_MathLatin_RomanGreek__BopomofoGaps
