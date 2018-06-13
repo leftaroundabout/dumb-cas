@@ -114,6 +114,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
   pi = Symbol $ StringSymbol "pi"
   (**) = symbolInfix (Infix (Hs.Fixity 8 Hs.InfixL) "**")
   logBase = symbolInfix (Infix (Hs.Fixity 10 Hs.InfixL) "`logBase`")
+  sqrt = symbolFunction $ "sqrt "
   exp = symbolFunction $ "exp "
   log = symbolFunction $ "log "
   sin = symbolFunction $ "sin "
