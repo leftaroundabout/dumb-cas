@@ -112,7 +112,7 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
           => Floating (AlgebraExpr' γ σ String) where
   pi = Symbol $ StringSymbol "pi"
-  (**) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) "**")
+  (**) = symbolInfix (Infix (Hs.Fixity 8 Hs.InfixL) "**")
   logBase = symbolInfix (Infix (Hs.Fixity 10 Hs.InfixL) "`logBase`")
   exp = symbolFunction $ "exp "
   log = symbolFunction $ "log "
