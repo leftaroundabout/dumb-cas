@@ -88,11 +88,13 @@ _a,_b,_c,_d,_e,_f,_g,_h,_i,_j,_k,_l,_m,_n,_o,_p,_q,_r,_s,_t,_u,_v,_w,_x,_y,_z
 makeSymbols ''Expression' ['A'..'Z']
 #endif
 
-instance ASCIISymbols c => Show (CAS (Infix c) (Encapsulation c) (Symbol c)) where
-  showsPrec = showsPrecASCIISymbol
-instance ∀ c . (ASCIISymbols c, Monoid c)
+instance (ASCIISymbols c, RenderableEncapsulations c)
+      => Show (CAS (Infix c) (Encapsulation c) (Symbol c)) where
+  showsPrec p = showsPrecASCIISymbol p . fixateAlgebraEncaps
+   where 
+instance ∀ c . (ASCIISymbols c, RenderableEncapsulations c, Monoid c)
        => Show (CAS' GapId (Infix c) (Encapsulation c) (Symbol c)) where
-  showsPrec p = showsPrecASCIISymbol p . purgeGaps
+  showsPrec p = showsPrecASCIISymbol p . purgeGaps . fixateAlgebraEncaps
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)

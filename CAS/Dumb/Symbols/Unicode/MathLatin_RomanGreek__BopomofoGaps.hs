@@ -159,10 +159,11 @@ makeSymbols ''Expression' $ ['Α'..'Ρ']++['Σ'..'Ω']
   ,ㄠ,ㄡ,ㄢ,ㄣ,ㄤ,ㄥ,ㄦ,ㄧ,ㄨ,ㄩ,ㄪ,ㄫ,ㄬ]
     = Gap . fromEnum <$> ['ㄅ'..'ㄬ']
 
-instance UnicodeSymbols c => Show (Expression c) where
-  showsPrec = showsPrecUnicodeSymbol
-instance ∀ c . UnicodeSymbols c => Show (Pattern c) where
-  showsPrec p = showsPrecUnicodeSymbol p . purgeGaps
+instance (UnicodeSymbols c, RenderableEncapsulations c) => Show (Expression c) where
+  showsPrec p = showsPrecUnicodeSymbol p . fixateAlgebraEncaps
+instance ∀ c . (UnicodeSymbols c, RenderableEncapsulations c)
+                   => Show (Pattern c) where
+  showsPrec p = showsPrecUnicodeSymbol p . purgeGaps . fixateAlgebraEncaps
    where purgeGaps (Symbol s) = Symbol s
          purgeGaps (Function f e) = Function f $ purgeGaps e
          purgeGaps (Operator o x y) = Operator o (purgeGaps x) (purgeGaps y)

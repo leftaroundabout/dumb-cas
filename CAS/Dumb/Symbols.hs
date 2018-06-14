@@ -47,10 +47,13 @@ data Infix s = Infix {
 instance Eq s => Eq (Infix s) where
   Infix _ o == Infix _ p = o==p
 
+type family SpecialEncapsulation s
+
 data Encapsulation s = Encapsulation {
       needInnerParens, haveOuterparens :: !Bool
     , leftEncaps, rightEncaps :: !s
     }
+  | SpecialEncapsulation (SpecialEncapsulation s)
 
 instance Eq (Encapsulation String) where
   Encapsulation _ _ l r == Encapsulation _ _ l' r'
@@ -59,6 +62,8 @@ instance Eq (Encapsulation String) where
          dropParens (' ':lr) rr = dropParens lr rr
          dropParens lr (' ':rr) = dropParens lr rr
          dropParens lr rr = (lr,rr)
+  SpecialEncapsulation e == SpecialEncapsulation e' = e==e'
+  _ == _ = False
 
 type AlgebraExpr σ l = CAS (Infix l) (Encapsulation l) (SymbolD σ l)
 type AlgebraExpr' γ σ l = CAS' γ (Infix l) (Encapsulation l) (SymbolD σ l)
@@ -82,6 +87,14 @@ symbolFunction :: Monoid s¹ => s¹
   -> CAS' γ (Infix s²) (Encapsulation s¹) s⁰
 symbolFunction f a = Function (Encapsulation True False f mempty) a
 
+
+
+data AlgebraicInvEncapsulation
+       = Negation | Reciprocal
+ deriving (Eq, Show)
+
+type instance SpecialEncapsulation String = AlgebraicInvEncapsulation
+
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
           => Num (AlgebraExpr' γ σ String) where
   fromInteger n
@@ -93,21 +106,16 @@ instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
   (*) = chainableInfixL (==mulOp) mulOp
    where fcs = fromCharSymbol ([]::[σ])
          mulOp = Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '*'
-  (-) = symbolInfix (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
-   where fcs = fromCharSymbol ([]::[σ])
   abs = symbolFunction "abs "
   signum = symbolFunction "signum "
-  negate = Operator (Infix (Hs.Fixity 6 Hs.InfixL) $ fcs '-')
-             . Symbol $ StringSymbol " "
-   where fcs = fromCharSymbol ([]::[σ])
+  negate = Function $ SpecialEncapsulation Negation
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
           => Fractional (AlgebraExpr' γ σ String) where
   fromRational n = case fromRational n of
      n:%d -> fromIntegral n / fromIntegral d
      nSci -> Symbol (StringSymbol $ show nSci)
-  (/) = symbolInfix (Infix (Hs.Fixity 7 Hs.InfixL) $ fcs '/')
-   where fcs = fromCharSymbol ([]::[σ])
+  recip = Function $ SpecialEncapsulation Reciprocal
 
 instance ∀ σ γ . (SymbolClass σ, SCConstraint σ String)
           => Floating (AlgebraExpr' γ σ String) where
@@ -138,6 +146,24 @@ instance ASCIISymbols String where
   fromASCIISymbol = pure
   toASCIISymbols = id
 
+
+class Eq (SpecialEncapsulation c) => RenderableEncapsulations c where
+  fixateAlgebraEncaps :: CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)
+                         -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)
+
+instance RenderableEncapsulations String where
+  fixateAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
+            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
+                (Symbol $ StringSymbol " ") e
+  fixateAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
+            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "/")
+                (Symbol $ NatSymbol 1) e
+  fixateAlgebraEncaps (Function f e) = Function f $ fixateAlgebraEncaps e
+  fixateAlgebraEncaps (Operator o x y)
+        = Operator o (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+  fixateAlgebraEncaps (OperatorChain x₀ oys)
+        = OperatorChain (fixateAlgebraEncaps x₀) (second fixateAlgebraEncaps <$> oys)
+  fixateAlgebraEncaps e = e
 
 type RenderingCombinator σ c r
         = Bool        -- ^ Should the result be parenthesised?
@@ -202,6 +228,8 @@ renderSymbolExpression ctxt ρ (OperatorChain x ys@(_:_)) = go parens x ys
          AtRHS (Hs.Fixity pfxty _)         | Hs.Fixity lfxty _ <- fxty
                                            , lfxty==pfxty                       -> True
          AtRHS _                                                                -> False
+renderSymbolExpression _ _ (Function (SpecialEncapsulation _) _) = error
+ "`renderSymbolExpression` cannot handle `SpecialEncapsulation`; please pre-process accordingly."
 
 
 showsPrecASCIISymbol :: (ASCIISymbols c, SymbolClass σ, SCConstraint σ c)
