@@ -172,10 +172,10 @@ instance RenderableEncapsulations String where
                     (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
   fixateAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
             = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
-                (Symbol $ StringSymbol " ") e
+                (Symbol $ StringSymbol " ") $ fixateAlgebraEncaps e
   fixateAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
             = Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/")
-                (Symbol $ NatSymbol 1) e
+                (Symbol $ NatSymbol 1) $ fixateAlgebraEncaps e
   fixateAlgebraEncaps (Function f e) = Function f $ fixateAlgebraEncaps e
   fixateAlgebraEncaps (Operator o x y)
         = Operator o (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
