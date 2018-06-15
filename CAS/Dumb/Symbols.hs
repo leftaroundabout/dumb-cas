@@ -30,6 +30,7 @@ import Control.Arrow
 import Data.String (IsString)
 
 import GHC.Exts (Constraint)
+import GHC.Stack (HasCallStack)
 
 import Data.Ratio (denominator, numerator)
 import Numeric.Literals.Decimal
@@ -202,7 +203,7 @@ expressionFixity (OperatorChain _ ((Infix fxty _,_):_)) = Just fxty
 expressionFixity (OperatorChain x₀ []) = expressionFixity x₀
 expressionFixity (Gap _) = Nothing
 
-renderSymbolExpression :: ∀ σ c r . (SymbolClass σ, SCConstraint σ c)
+renderSymbolExpression :: ∀ σ c r . (SymbolClass σ, SCConstraint σ c, HasCallStack)
          => ContextFixity -> RenderingCombinator σ c r
                     -> AlgebraExpr σ c -> r
 renderSymbolExpression _ ρ (Symbol s) = ρ False Nothing s Nothing
