@@ -82,7 +82,7 @@ tests = testGroup "Tests"
      , testCase "abs 3" $
       abs 3 %@?= "abs 3"
      , testCase "𝑎 + -3" $
-      𝑎+(-3) %@?= "𝑎+( -3)"
+      𝑎+(-3) %@?= "𝑎-3"
      , testCase "𝑎 / signum π" $
       𝑎/signum π %@?= "𝑎/signum π"
      , testCase "logBase 2 32 ** atan pi" $

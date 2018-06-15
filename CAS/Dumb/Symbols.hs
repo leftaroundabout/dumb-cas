@@ -152,11 +152,28 @@ class Eq (SpecialEncapsulation c) => RenderableEncapsulations c where
                          -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)
 
 instance RenderableEncapsulations String where
+  fixateAlgebraEncaps (OperatorChain x
+                         ((o,Function (SpecialEncapsulation ι) z):ys))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
+           = case fixateAlgebraEncaps $ OperatorChain x ys of
+               OperatorChain x' ys' -> OperatorChain x'
+                 $ (Infix (Hs.Fixity 6 Hs.InfixL) "-", fixateAlgebraEncaps z) : ys'
+     | (Infix (Hs.Fixity 7 Hs.InfixL) "*", Reciprocal) <- (o,ι)
+           = case fixateAlgebraEncaps $ OperatorChain x ys of
+               OperatorChain x' ys' -> OperatorChain x'
+                 $ (Infix (Hs.Fixity 7 Hs.InfixL) "/", fixateAlgebraEncaps z) : ys'
+  fixateAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
+     | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
+           = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
+                    (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+     | (Infix (Hs.Fixity 7 Hs.InfixL) "*", Reciprocal) <- (o,ι)
+           = Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/")
+                    (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
   fixateAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
             = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
                 (Symbol $ StringSymbol " ") e
   fixateAlgebraEncaps (Function (SpecialEncapsulation Reciprocal) e)
-            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "/")
+            = Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/")
                 (Symbol $ NatSymbol 1) e
   fixateAlgebraEncaps (Function f e) = Function f $ fixateAlgebraEncaps e
   fixateAlgebraEncaps (Operator o x y)
