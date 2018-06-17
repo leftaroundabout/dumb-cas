@@ -159,18 +159,18 @@ instance RenderableEncapsulations String where
      | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
            = case fixateAlgebraEncaps $ OperatorChain x ys of
                OperatorChain x' ys' -> OperatorChain x'
-                 $ (Infix (Hs.Fixity 6 Hs.InfixL) "-", fixateAlgebraEncaps z) : ys'
+                 $ (Infix (Hs.Fixity 6 Hs.InfixL) "-", z') : ys'
      | (Infix (Hs.Fixity 7 Hs.InfixL) "*", Reciprocal) <- (o,ι)
            = case fixateAlgebraEncaps $ OperatorChain x ys of
                OperatorChain x' ys' -> OperatorChain x'
-                 $ (Infix (Hs.Fixity 7 Hs.InfixL) "/", fixateAlgebraEncaps z) : ys'
+                 $ (Infix (Hs.Fixity 7 Hs.InfixL) "/", z') : ys'
+   where z' = fixateAlgebraEncaps z
   fixateAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
-           = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
-                    (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+           = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' y'
      | (Infix (Hs.Fixity 7 Hs.InfixL) "*", Reciprocal) <- (o,ι)
-           = Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/")
-                    (fixateAlgebraEncaps x) (fixateAlgebraEncaps y)
+           = Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/") x' y'
+   where [x',y'] = fixateAlgebraEncaps<$>[x,y]
   fixateAlgebraEncaps (Function (SpecialEncapsulation Negation) e)
             = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-")
                 (Symbol $ StringSymbol " ") $ fixateAlgebraEncaps e
