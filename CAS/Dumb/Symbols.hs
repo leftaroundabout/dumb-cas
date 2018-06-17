@@ -160,11 +160,14 @@ instance RenderableEncapsulations String where
            = case fixateAlgebraEncaps $ OperatorChain x ys of
                OperatorChain x' ys' -> OperatorChain x'
                  $ (Infix (Hs.Fixity 6 Hs.InfixL) "-", z') : ys'
+               x' -> OperatorChain x' [(Infix (Hs.Fixity 6 Hs.InfixL) "-", z')]
      | (Infix (Hs.Fixity 7 Hs.InfixL) "*", Reciprocal) <- (o,ι)
            = case fixateAlgebraEncaps $ OperatorChain x ys of
                OperatorChain x' ys' -> OperatorChain x'
                  $ (Infix (Hs.Fixity 7 Hs.InfixL) "/", z') : ys'
+               x' -> OperatorChain x' [(Infix (Hs.Fixity 7 Hs.InfixL) "/", z')]
    where z' = fixateAlgebraEncaps z
+  fixateAlgebraEncaps (OperatorChain x []) = fixateAlgebraEncaps x
   fixateAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' y'
