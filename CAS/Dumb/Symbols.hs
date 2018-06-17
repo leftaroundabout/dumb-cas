@@ -149,7 +149,8 @@ instance ASCIISymbols String where
 
 
 class Eq (SpecialEncapsulation c) => RenderableEncapsulations c where
-  fixateAlgebraEncaps :: CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)
+  fixateAlgebraEncaps :: (SymbolClass σ, SCConstraint σ c)
+      => CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)
                          -> CAS' γ (Infix c) (Encapsulation c) (SymbolD σ c)
 
 instance RenderableEncapsulations String where
