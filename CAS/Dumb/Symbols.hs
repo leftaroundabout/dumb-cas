@@ -164,6 +164,8 @@ instance RenderableEncapsulations String where
                x' -> Operator (Infix (Hs.Fixity 7 Hs.InfixL) "/") x' z'
    where z' = fixateAlgebraEncaps z
   fixateAlgebraEncaps (OperatorChain x []) = fixateAlgebraEncaps x
+  fixateAlgebraEncaps (OperatorChain x ((o@(Infix (Hs.Fixity _ Hs.InfixL) _), z):ys))
+      = Operator o (fixateAlgebraEncaps $ OperatorChain x ys) (fixateAlgebraEncaps z)
   fixateAlgebraEncaps (Operator o x (Function (SpecialEncapsulation ι) y))
      | (Infix (Hs.Fixity 6 Hs.InfixL) "+", Negation) <- (o,ι)
            = Operator (Infix (Hs.Fixity 6 Hs.InfixL) "-") x' y'
