@@ -71,6 +71,8 @@ tests = testGroup "Tests"
   , testGroup "Show instance"
      [ testCase "𝑎+𝑏+𝑐" $
       𝑎+𝑏+𝑐 %@?= "𝑎+𝑏+𝑐"
+     , testCase "𝑎-𝑏+𝑐" $
+      𝑎-𝑏+𝑐 %@?= "𝑎-𝑏+𝑐"
      , testCase "𝑎+(𝑏+𝑐)" $
       𝑎+(𝑏+𝑐) %@?= "𝑎+(𝑏+𝑐)"
      , testCase "𝑎+𝑏*𝑐" $
