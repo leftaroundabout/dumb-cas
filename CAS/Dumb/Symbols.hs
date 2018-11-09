@@ -313,11 +313,14 @@ infixl 4 %$>
 -- @
 -- (map succ%$> 𝑎+𝑝) * 𝑥  ≡  (𝑏+𝑞) * 𝑥
 -- @
+-- 
+--   Note that this can /not/ be used with number literals.
 (%$>) :: ∀ σ c c' γ s² s¹ . (SymbolClass σ, SCConstraint σ c)
          => (c -> c') -> CAS' γ s² s¹ (SymbolD σ c) -> CAS' γ s² s¹ (SymbolD σ c')
 f %$> Symbol (PrimitiveSymbol c) = case fromCharSymbol ([]::[σ]) of
          fcs -> Symbol . StringSymbol . f $ fcs c
 f %$> Symbol (StringSymbol s) = Symbol . StringSymbol $ f s
+_ %$> Symbol (NatSymbol _) = error "`%$>` cannot be used with number literals."
 f %$> Function g q = Function g $ f %$> q
 f %$> Operator o p q = Operator o (f%$>p) (f%$>q)
 f %$> OperatorChain p qs = OperatorChain (f%$>p) (second (f%$>)<$>qs)
