@@ -13,7 +13,7 @@ description:         This is a framework for untyped, symbolic computations like
 license:             GPL-3
 license-file:        LICENSE
 author:              Justus Sagemüller
-maintainer:          (@) jsagemue $ uni-koeln.de
+maintainer:          (@) jsag $ hvl.no
 homepage:            https://github.com/leftaroundabout/dumb-cas
 -- copyright:           
 category:            Math
