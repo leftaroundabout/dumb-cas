@@ -24,7 +24,7 @@
 
 module CAS.Dumb.Symbols.ASCII (
           module CAS.Dumb.Symbols
-        , Symbol, Expression, Pattern
+        , ASCII, Symbol, Expression, Pattern
         -- * “Constant variable” symbols
         -- ** Lowercase letters
         , a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z

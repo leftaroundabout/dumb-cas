@@ -24,7 +24,7 @@
 
 module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps (
           module CAS.Dumb.Symbols
-        , Symbol, Expression, Pattern
+        , Unicode_MathLatin_RomanGreek__BopomofoGaps, Symbol, Expression, Pattern
         -- * “Constant variable” symbols
         -- ** Lowercase letters
         -- $UnicodeMathSymHelp
