@@ -32,6 +32,8 @@ module CAS.Dumb.Symbols.Unicode.MathLatin_RomanGreek__BopomofoGaps (
         , 𝑎,𝑏,𝑐,𝑑,𝑒,𝑓,𝑔,ℎ,𝑖,𝑗,𝑘,𝑙,𝑚,𝑛,𝑜,𝑝,𝑞,𝑟,𝑠,𝑡,𝑢,𝑣,𝑤,𝑥,𝑦,𝑧
         -- *** Bold
         , 𝐚,𝐛,𝐜,𝐝,𝐞,𝐟,𝐠,𝐡,𝐢,𝐣,𝐤,𝐥,𝐦,𝐧,𝐨,𝐩,𝐪,𝐫,𝐬,𝐭,𝐮,𝐯,𝐰,𝐱,𝐲,𝐳
+        -- *** Fraktur
+        , 𝔞,𝔟,𝔠,𝔡,𝔢,𝔣,𝔤,𝔥,𝔦,𝔧,𝔨,𝔩,𝔪,𝔫,𝔬,𝔭,𝔮,𝔯,𝔰,𝔱,𝔲,𝔳,𝔴,𝔵,𝔶,𝔷
         -- *** Greek
         , α,β,γ,δ,ε,ζ,η,θ,ϑ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,ϱ,σ,ς,τ,υ,ϕ,φ,χ,ψ,ω
         -- ** Uppercase letters
@@ -81,18 +83,24 @@ instance SymbolClass Unicode_MathLatin_RomanGreek__BopomofoGaps where
 instance Unwieldy c => Unwieldy (Symbol c) where
   unwieldiness (NatSymbol i) = 0.24127 + fromInteger (abs i)
   unwieldiness (PrimitiveSymbol c)
-    | c>='a' && c<='z'  = 1.17236 + fromIntegral (fromEnum 'z' - ucp)/49.4530
-    | c>='𝑎' && c<='𝑧'  = 1.17249 + fromIntegral (fromEnum '𝑧' - ucp)/49.4564
+    | c>='a' && c<='z'  = 1.17236 + fromIntegral (fromEnum 'z' - ucp         )/49.4530
+    | c>='𝑎' && c<='𝑧'  = 1.17249 + fromIntegral (fromEnum '𝑧' - ucp         )/49.4564
     | c=='ℎ'            = 1.17249 + fromIntegral (fromEnum 'z' - fromEnum 'h')/49.4564
-    | c>='A' && c<='Z'  = 1.17211 + fromIntegral (fromEnum 'Z' - ucp)/49.4571
-    | c>='𝐴' && c<='𝑍'  = 1.17213 + fromIntegral (fromEnum '𝑍' - ucp)/49.4511
-    | c>='𝐚' && c<='𝐳'  = 1.17228 + fromIntegral (fromEnum '𝐳' - ucp)/49.4572
-    | c>='𝐀' && c<='𝐙'  = 1.17210 + fromIntegral (fromEnum '𝐙' - ucp)/49.4518
-    | c>='𝓐' && c<='𝓩'  = 1.17212 + fromIntegral (fromEnum '𝓩' - ucp)/49.4528
-    | c>='α' && c<='ω'  = 1.03627 + fromIntegral (fromEnum 'ω' - ucp)/342.637
+    | c>='A' && c<='Z'  = 1.17211 + fromIntegral (fromEnum 'Z' - ucp         )/49.4571
+    | c>='𝐴' && c<='𝑍'  = 1.17213 + fromIntegral (fromEnum '𝑍' - ucp         )/49.4511
+    | c>='𝐚' && c<='𝐳'  = 1.17228 + fromIntegral (fromEnum '𝐳' - ucp         )/49.4572
+    | c>='𝔄' && c<='ℨ'  = 1.18131 + fromIntegral (fromEnum 'ℨ' - ucp         )/51.4522
+    | c=='ℭ'            = 1.18131 + fromIntegral (fromEnum 'Z' - fromEnum 'C')/51.4522
+    | c=='ℌ'            = 1.18131 + fromIntegral (fromEnum 'Z' - fromEnum 'H')/51.4522
+    | c=='ℑ'            = 1.18131 + fromIntegral (fromEnum 'Z' - fromEnum 'I')/51.4522
+    | c=='ℜ'            = 1.18131 + fromIntegral (fromEnum 'Z' - fromEnum 'R')/51.4522
+    | c>='𝔞' && c<='𝔷'  = 1.18134 + fromIntegral (fromEnum '𝔷' - ucp         )/51.4522
+    | c>='𝐀' && c<='𝐙'  = 1.17210 + fromIntegral (fromEnum '𝐙' - ucp         )/49.4518
+    | c>='𝓐' && c<='𝓩'  = 1.17212 + fromIntegral (fromEnum '𝓩' - ucp         )/49.4528
+    | c>='α' && c<='ω'  = 1.03627 + fromIntegral (fromEnum 'ω' - ucp         )/342.637
     | c=='ϑ'            = 1.03628 + fromIntegral (fromEnum 'ω' - fromEnum 'θ')/342.637
     | c=='ϕ'            = 1.03628 + fromIntegral (fromEnum 'ω' - fromEnum 'φ')/342.637
-    | c>='Α' && c<='Ω'  = 1.03625 + fromIntegral (fromEnum 'Ω' - ucp)/342.642
+    | c>='Α' && c<='Ω'  = 1.03625 + fromIntegral (fromEnum 'Ω' - ucp         )/342.642
     | otherwise         = 1.24551 + fromIntegral ucp / 52792.42
                                   + fromIntegral (ucp`mod`136)/9722.3
    where ucp = fromEnum c
@@ -113,6 +121,7 @@ makeSymbols ''Expression' ['𝐚'..'𝐳']
 
 makeSymbols ''Expression' "αβγδεζηθϑικλμνξοπρϱσςτυϕφχψω"
 
+makeSymbols ''Expression' "𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷"
 
 -- $uppercaseCaveat
 -- These are only available in GHC>8.2. The ability to use uppercase letters as variables
