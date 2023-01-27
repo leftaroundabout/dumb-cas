@@ -13,7 +13,7 @@
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE CPP                 #-}
 
-module CAS.Dumb.Symbols.PatternGenerator where
+module CAS.Dumb.Symbols.PatternGenerator (makeSymbols, makeQualifiedSymbols) where
 
 import CAS.Dumb.Tree
 import CAS.Dumb.Symbols
@@ -27,6 +27,21 @@ makeSymbols :: Name   -- ^ Desired type of the symbols.
             -> DecsQ
 makeSymbols t = makeQualifiedSymbols t ""
 
+plainTVinf :: Name -> TyVarBndr
+#if MIN_VERSION_template_haskell(2,17,0)
+                                Specificity
+plainTVinf n = PlainTV n inferredSpec
+#else
+plainTVinf = PlainTV
+#endif
+
+conPnoTA :: Name -> [Pat] -> Pat
+#if MIN_VERSION_template_haskell(2,18,0)
+conPnoTA n pats = ConP n [] pats
+#else
+conPnoTA = ConP
+#endif
+
 makeQualifiedSymbols
             :: Name   -- ^ Desired type of the symbols.
             -> String -- ^ Prefix for the generated Haskell names.
@@ -35,7 +50,7 @@ makeQualifiedSymbols
 makeQualifiedSymbols casType namePrefix = fmap concat . mapM mkSymbol
  where mkSymbol c
         | isLower (head idfyer) = return
-         [ SigD symbName $ ForallT [PlainTV γ, PlainTV s¹, PlainTV s², PlainTV ζ] [] typeName
+         [ SigD symbName $ ForallT [plainTVinf γ, plainTVinf s¹, plainTVinf s², plainTVinf ζ] [] typeName
         -- c :: casType γ s² s¹ ζ
          , ValD (VarP symbName)
                 (NormalB . AppE (ConE 'Symbol)
@@ -51,7 +66,7 @@ makeQualifiedSymbols casType namePrefix = fmap concat . mapM mkSymbol
          , PatSynD symbName
                    (PrefixPatSyn [])
                    ImplBidir
-                   ('Symbol `ConP` ['PrimitiveSymbol `ConP` [LitP $ CharL c]])
+                   ('Symbol `conPnoTA` ['PrimitiveSymbol `conPnoTA` [LitP $ CharL c]])
         -- pattern c = Symbol (StringSymbol ['c'])
          ] 
 #endif
