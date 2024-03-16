@@ -29,7 +29,7 @@ import Control.Arrow
 
 import Data.String (IsString)
 
-import GHC.Exts (Constraint)
+import Data.Kind (Constraint, Type)
 import GHC.Stack (HasCallStack)
 
 import Data.Ratio (denominator, numerator)
@@ -287,7 +287,7 @@ showsPrecUnicodeSymbol ctxt
 
 
 class SymbolClass σ where
-  type SCConstraint σ :: * -> Constraint
+  type SCConstraint σ :: Type -> Constraint
   fromCharSymbol :: (Functor p, SCConstraint σ c) => p σ -> Char -> c
 
 normaliseSymbols :: ∀ σ c γ s² s¹ . (SymbolClass σ, SCConstraint σ c)
